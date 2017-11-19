@@ -1,3 +1,8 @@
+import numpy as np
+import pandas as pd
+import re
+import praw
+
 def get_comments(submission, depth=None, limit=32, threshold=0):
     '''Flatten comment forest up to specified depth after replacing 'MoreComments' instances.
 
@@ -65,9 +70,6 @@ def load_data(reddit, subreddit='all', limit_subs=10, depth=None, limit_coms=32,
     return data, submissions, comments
 
 if __name__ == "__main__":
-    import pandas as pd
-    import re
-    import praw
     import matplotlib.pyplot as plt
     ## Andy Mueller's wordcloud (https://github.com/amueller/word_cloud)
     from wordcloud import WordCloud
