@@ -26,30 +26,36 @@ The function `to_dataframe` strips leading/trailing whitespace and all newline c
 For each specified subreddit, this function passes appropriate arguments to get_comments, then passes the results to to_dataframe. The results are appended with a new column 'subreddit'.
 
 ## Example
-'''Python
-## Store API secrets in 'secrets.py'
+
+Store API secrets in 'secrets.py'. Make PRAW Reddit instance.
+```python
 from secrets import *
 reddit = praw.Reddit(client_id=CLIENT_ID,
                      client_secret=CLIENT_SECRET,
                      user_agent=USER_AGENT)
+```
 
+Get today's most active subreddits.
+```python
 subreddits = subredditList(ranking='activity', nsubs=1)
 print(subreddits)
+```
 
+Get the first three levels of comments from the hottest comments on the hottest submissions from the most active subreddits.
+```python
 data = load_data(reddit, subreddits=subreddits, limit_subs=5, depth=3)
 print(data.head())
-
+```
+Use Andy Mueller's wordcloud (https://github.com/amueller/word_cloud) to make a word cloud.
+```python
 import matplotlib.pyplot as plt
-## Andy Mueller's wordcloud (https://github.com/amueller/word_cloud)
 from wordcloud import WordCloud
-## Join all comments into one string
-text = ' '.join(data['body'])
 
-## Generate the wordcloud
+text = ' '.join(data['body'])
 wordcloud = WordCloud().generate(text)
 
 ## Display wordcloud with matplotlib
 _ = plt.imshow(wordcloud, interpolation='bilinear')
 _ = plt.axis("off")
 plt.show()
-'''
+```
