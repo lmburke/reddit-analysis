@@ -1,0 +1,297 @@
+\documentclass[]{article}
+
+% Format page
+\usepackage{fullpage}
+
+% Math, plots, links, and quotes
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx,float}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,%
+    citecolor=black,%
+    filecolor=black,%
+    linkcolor=black,%
+    urlcolor=black%
+}
+\usepackage[
+    left = ``,%
+    right = '',%
+    leftsub = `,%
+    rightsub = '%
+]{dirtytalk}
+\usepackage{nth}
+
+% Format structure
+\usepackage[titletoc,title]{appendix}
+\usepackage{chngcntr}
+\counterwithout{figure}{section}
+
+\usepackage{listings}
+
+\usepackage[backend=bibtex,style=numeric-comp]{biblatex}
+\bibliography{references}
+
+\usepackage{ifdraft}
+
+% To do notes
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+
+\ifdraft{ 
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+}{
+\usepackage[disable]{todonotes}
+}
+
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\citeme}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\idea}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+% Indent specs
+\usepackage{changepage}
+\newenvironment{specs}
+  {\adjustwidth{3em}{0pt}}
+  {\endadjustwidth}
+
+% Top matter
+\title{
+Machine Learning Engineer Nanodegree\\
+\Large Capstone Proposal}
+\date{November \nth{24}, 2017}
+\author{Lee Burke}
+
+\begin{document}
+\maketitle
+%\abstract{}
+
+\listoftodos[Notes]
+
+\section{Domain Background}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 1-2 paragraphs)
+
+In this section, provide brief details on the background information of the domain from which the project is proposed. Historical information relevant to the project should be included. It should be clear how or why a problem in the domain can or should be solved. Related academic research should be appropriately cited in this section, including why that research is relevant. Additionally, a discussion of your personal motivation for investigating a particular problem in the domain is encouraged but not required.
+
+\subsection*{Rubric}
+Student briefly details background information of the domain from which the project is proposed. Historical information relevant to the project should be included. It should be clear how or why a problem in the domain can or should be solved. Related academic research should be appropriately cited. A discussion of the student's personal motivation for investigating a particular problem in the domain is encouraged but not required.
+
+\end{specs}
+\subsection*{}
+}{}
+
+Natural language processing is an essential but difficult application of machine learning. Language is as complex as the meaning which it conveys; as our understanding of the world is contingent on incomplete and shifting knowledge, so too is our language a fuzzy shadow of crisp logical formalism. Indeed, teaching a machine to fully parse language is perhaps equivalent to teaching it to comprehend, like a child learning to speak. Clearly, the automatic extraction of semantic features from raw text is difficult.
+
+Nonetheless, much progress has been made. In 1963, Mosteller and Wallace used Bayesian statistics to analyze the authorship of \emph{The Federalist Papers}\autocite{Mosteller1963}. Decades years later, these foundations are still recognizable (e.g., the hierarchical Bayesian approach of Latent Dirichlet Allocation in \cite{Blei2003}). The data revolution (see, e.g., \cite{fourthparadigm}) has leveraged these statistical techniques to power new technologies: everyone has a virtual assistant in their pocket capable of responding to commands.
+
+This project will explore modern techniques for language processing, including \texttt{word2vec}, \texttt{doc2vec} and related technologies, and older tools like LDA. It will bring these tools to bear on the automatic classification of text in the same vein as Mosteller and Wallace's research decades ago. More recent similar projects include attempts to automatically categorize Hacker News articles\footnote{\url{https://techcrunch.com/2017/05/14/building-a-smarter-hacker-news/}} and a current Kaggle.com playground competition to identify the authors of horror story snippets \footnote{\url{https://www.kaggle.com/c/spooky-author-identification}}.
+
+In particular, the semantic and syntactic qualities of various Reddit.com communities will be compared. Reddit is one of the most-trafficked domains on the internet, with thousands of interconnected message boards and millions of submissions per day\cite{redditblog:2015}. Analysis is made interesting by the organically user-generated structure of the site, the semi-anonymous nature of Reddit user accounts, and the free-wheeling nature of casual conversation. Surfing Reddit is like walking through the biggest crowd on Earth, listening to everyone else's conversations.
+
+\section{Problem Statement}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 1 paragraph)
+
+In this section, clearly describe the problem that is to be solved. The problem described should be well defined and should have at least one relevant potential solution. Additionally, describe the problem thoroughly such that it is clear that the problem is quantifiable (the problem can be expressed in mathematical or logical terms) , measurable (the problem can be measured by some metric and clearly observed), and replicable (the problem can be reproduced and occurs more than once).
+
+\subsection*{Rubric}
+Student clearly describes the problem that is to be solved. The problem is well defined and has at least one relevant potential solution. Additionally, the problem is quantifiable, measurable, and replicable.
+\end{specs}
+
+\subsection*{}
+}{}
+
+This project will cluster subreddits in an effort to find similar communities. This is an unsupervised learning problem that could fit into a larger recommender system based on user activity. If we can extract relevant (and quantifiable) information from the subreddits and consider some metric of similarity, it can be seen immediately that the problem is quantifiable, measurable, and replicable.
+
+\section{Datasets and Inputs}
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 2-3 paragraphs)
+
+In this section, the dataset(s) and/or input(s) being considered for the project should be thoroughly described, such as how they relate to the problem and why they should be used. Information such as how the dataset or input is (was) obtained, and the characteristics of the dataset or input, should be included with relevant references and citations as necessary It should be clear how the dataset(s) or input(s) will be used in the project and whether their use is appropriate given the context of the problem.
+
+\subsection*{Rubric}
+The dataset(s) and/or input(s) to be used in the project are thoroughly described. Information such as how the dataset or input is (was) obtained, and the characteristics of the dataset or input, should be included. It should be clear how the dataset(s) or input(s) will be used in the project and whether their use is appropriate given the context of the problem.
+\end{specs}
+\subsection*{}
+}{}
+
+Reddit provides an API for accessing its data, and this is the best way to get small amounts of up-to-date data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. 
+
+Luckily, the website \href{https://pushshift.io}{pushshift.io} offers massive monthly data dumps of Reddit comments. This source will provide the corpus for training and testing the model, using the Google BigQuery platform (up to 1 TB of data processing for free per month) to filter on time and subreddit\footnote{See \url{https://pushshift.io/using-bigquery-with-reddit-data/}}. The data will then be exported for local processing.
+
+The goal is to use the big data to build a database of subreddit features, then to use the API to retrieve a given subreddit's current data in order to recommend similar subreddits.
+
+
+\section{Solution Statement}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 1 paragraph)
+
+In this section, clearly describe a solution to the problem. The solution should be applicable to the project domain and appropriate for the dataset(s) or input(s) given. Additionally, describe the solution thoroughly such that it is clear that the solution is quantifiable (the solution can be expressed in mathematical or logical terms) , measurable (the solution can be measured by some metric and clearly observed), and replicable (the solution can be reproduced and occurs more than once).
+
+\subsection*{Rubric}
+Student clearly describes a solution to the problem. The solution is applicable to the project domain and appropriate for the dataset(s) or input(s) given. Additionally, the solution is quantifiable, measurable, and replicable.
+\end{specs}
+\subsection*{}
+}{}
+
+The problem will be approached in two steps: (1) feature extraction from the subreddits and (2) clustering based on those features. In particular, only the comments of subreddit submissions will be considered (which assumes the culture of a subreddit exists in conversations around submissions, not in the submissions themselves). The comments will be analyzed using some natural language processing tools, and the results of that analysis will be used to find clusters of subreddits.
+
+\section{Benchmark Model}
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approximately 1-2 paragraphs)
+
+In this section, provide the details for a benchmark model or result that relates to the domain, problem statement, and intended solution. Ideally, the benchmark model or result contextualizes existing methods or known information in the domain and problem given, which could then be objectively compared to the solution. Describe how the benchmark model or result is measurable (can be measured by some metric and clearly observed) with thorough detail.
+
+\subsection*{Rubric}
+A benchmark model is provided that relates to the domain, problem statement, and intended solution. Ideally, the student's benchmark model provides context for existing methods or known information in the domain and problem given, which can then be objectively compared to the student's solution. The benchmark model is clearly defined and measurable.
+\end{specs}
+\subsection*{}
+}{}
+
+The simplest model takes word frequencies, then finds a linear discriminant or applies Naive Bayes to classify each document (each of these are used in the famous Mosteller and Wallace paper\cite{Mosteller1963}). A simple implementation of this method with multinomial Naive Bayes is shown in Listing 1, where \texttt{X} contains comments and \texttt{y} is a label encoding of the subreddit names.
+
+A more modern alternative is \texttt{FastText} from Facebook Research\footnote{\url{https://github.com/facebookresearch/fastText}}: This extremely fast method has proven to be competitive with much more complex models at the forefront of contemporary research.
+
+\begin{figure}[!htb]
+\begin{lstlisting}[frame=single,language=python,caption={Benchmark model}]
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_validate
+
+vectorizer = CountVectorizer()
+clf = MultinomialNB()
+counts_multinomialNB = Pipeline([('counts', vectorizer), ('MultiNB', clf)])
+
+scores = cross_validate(counts_multinomialNB, X, y)
+\end{lstlisting}
+\end{figure}
+
+\section{Evaluation Metrics}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 1-2 paragraphs)
+
+In this section, propose at least one evaluation metric that can be used to quantify the performance of both the benchmark model and the solution model. The evaluation metric(s) you propose should be appropriate given the context of the data, the problem statement, and the intended solution. Describe how the evaluation metric(s) are derived and provide an example of their mathematical representations (if applicable). Complex evaluation metrics should be clearly defined and quantifiable (can be expressed in mathematical or logical terms).
+
+\subsection*{Rubric}
+Student proposes at least one evaluation metric that can be used to quantify the performance of both the benchmark model and the solution model presented. The evaluation metric(s) proposed are appropriate given the context of the data, the problem statement, and the intended solution.
+\end{specs}
+\subsection*{}
+}{}
+The obvious metrics are cost and accuracy: we want to classify the comments correctly as cheaply as possible. Cost will be measured as speed for both transformation/training and predicting, while accuracy will be defined to be the number of correct predictions divided by the total number of predictions. Furthermore, it is often interesting to compare f-scores among algorithms, which more clearly show the tradeoff between precision and recall. The usual f1 score is defined as $2 P R / (P+R)$ where $P$ is precision and $R$ is recall. For the multi-class case, we may simply take the average of the score for each class, weighted by the size of the class.
+
+Qualitative analysis may also be interesting, so visualization of word/document embeddings will be explored, as well as interpretability thereof: can we say with confidence why a given comment is classified a certain way?
+
+\section{Project Design}
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsection*{Specification}
+(approx. 1 page)
+
+In this final section, summarize a theoretical workflow for approaching a solution given the problem. Provide thorough discussion for what strategies you may consider employing, what analysis of the data might be required before being used, or which algorithms will be considered for your implementation. The workflow and discussion that you provide should align with the qualities of the previous sections. Additionally, you are encouraged to include small visualizations, pseudocode, or diagrams to aid in describing the project design, but it is not required. The discussion should clearly outline your intended workflow of the capstone project.
+
+\subsection*{Rubric}
+Student summarizes a theoretical workflow for approaching a solution given the problem. Discussion is made as to what strategies may be employed, what analysis of the data might be required, or which algorithms will be considered. The workflow and discussion provided align with the qualities of the project. Small visualizations, pseudocode, or diagrams are encouraged but not required.
+\end{specs}
+\subsection*{}
+}{}
+
+The project will proceed in two phases. First, feature extraction tools will be compared using a supervised problem: given a corpus of comments from popular subreddits, compute the likelihood that a new comment belongs to any given subreddit (or simply assign each comment to a subreddit, as this is a classification and not a regression problem). Visualization and qualitative analysis of extracted features will also be performed. Once an appropriate set of features is identified, the unsupervised problem will transform comments from a particular subreddit and then find similar subreddits. More complex recommender systems will not be considered.
+
+The project will explore and compare many modern tools for feature extraction:
+\begin{itemize}
+	\item Bag-of-Words count matix, including n-grams
+	\item tf-idf frequencies (nonlinear transformation of count matrix)
+	\item Latent semantic analysis (SVD of count matrix)
+	\item Latent Dirichlet allocation (Bayesian extension of a probabilistic LSA)
+	\item \texttt{word2vec} (deep learning tool for dense word embeddings).
+\end{itemize}
+Some of these are tools for word embedding: mapping each word of a document to a point in some vector space. There are several options to aggregate the embeddings of each word in a document:
+\begin{itemize}
+	\item Simple averaging techniques
+	\item Training a convnet from scratch on \texttt{word2vec} inputs
+	\item \texttt{doc2vec} (deep learning tool for dense sentence embeddings)
+	\item Transfer learning from pre-trained deep networks.
+\end{itemize}
+These feature extractors will be tuned and then benchmarked for time and accuracy using a few popular classifiers, including
+\begin{itemize}
+	\item Multinomial Naive Bayes
+	\item Approximate nearest neighbors (e.g., \texttt{Annoy}\autocite{Annoy})
+	\item \texttt{xgboost} or other vanilla classification methods.
+\end{itemize}
+Parallelization and other big data techniques may be explored for some of these tools, as time allows. Most of these tools are easily implemented in \texttt{scikit-learn}\autocite{scikit-learn}, \texttt{gensim}\autocite{gensim}, or \texttt{keras}\autocite{keras}.
+
+\ifdraft{
+\begin{specs}
+\section*{Presentation}
+Proposal follows a well-organized structure and would be readily understood by its intended audience. Each section is written in a clear, concise and specific manner. Few grammatical and spelling mistakes are present. All resources used and referenced are properly cited.
+\end{specs}
+}{}
+
+\clearpage
+\printbibliography
+
+%\bibliography{references}
+%\bibliographystyle{ieeetr}
+
+
+%\begin{table}[!htb]
+%	\centering
+%	\caption{The area under the ROC and PR curves are summarized for each of the classification schemes discussed above.}
+%	\label{tab:area}
+%	\begin{tabular}{r|c|c}
+%		& AUC & AUCPR \\
+%		\hline
+%		LDA & 0.976 & 0.124 \\
+%		LDA w/ADASYN & 0.980 & 0.538 \\
+%		BCT  & 0.868 & 0.416 \\
+%		SVM & 0.905 & 0.660
+%	\end{tabular}
+%\end{table}
+
+%\begin{appendices}
+%\section{MATLAB functions used and brief implementation explanation}
+%\begin{itemize}
+%	\item \texttt{fitctree} -- Binary classification tree
+%	\item \texttt{fitcsvm} -- SVM classifier
+%	\item \texttt{fitcdiscr} -- Linear discriminant analysis
+%	\item \texttt{ADASYN} -- Synthetic data generation via the ADASYN algorithm
+%	\item \texttt{predict}
+%	\item \texttt{perfcurve}
+%\end{itemize}
+%\end{appendices}
+
+\end{document}
