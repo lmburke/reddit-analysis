@@ -61,7 +61,7 @@
 \title{
 Machine Learning Engineer Nanodegree\\
 \Large Capstone Proposal}
-\date{November \nth{24}, 2017}
+\date{November \nth{25}, 2017}
 \author{Lee Burke}
 
 \begin{document}
@@ -96,6 +96,8 @@ This project will explore modern techniques for language processing, including \
 
 In particular, the semantic and syntactic qualities of various Reddit.com communities will be compared. Reddit is one of the most-trafficked domains on the internet, with thousands of interconnected message boards and millions of submissions per day\cite{redditblog:2015}. Analysis is made interesting by the organically user-generated structure of the site, the semi-anonymous nature of Reddit user accounts, and the free-wheeling nature of casual conversation. Surfing Reddit is like walking through the biggest crowd on Earth, listening to everyone else's conversations.
 
+Reddit is organized like a forest graph: anyone can found a \emph{subreddit}, the root of a tree. To this subreddit, anyone can post a \emph{submission}, the first level of branches. These submissions can be blocks of text or links to other websites (often images or videos). On each submission, anyone can leave a \emph{comment}, and can comment on other comments. The conversations happening on Reddit occur almost exclusively in the comments: submissions are usually short, and have much less back-and-forth among users. Subreddits often develop their own sub-cultures (e.g., \href{https://reddit.com/r/catsstandingup}{/r/catsstandingup}, where only the comments saying, \say{cat.}, are allowed). These sub-cultures form the primary application of this project.
+
 \section{Problem Statement}
 
 \ifdraft{
@@ -114,7 +116,9 @@ Student clearly describes the problem that is to be solved. The problem is well 
 \subsection*{}
 }{}
 
-This project will cluster subreddits in an effort to find similar communities. This is an unsupervised learning problem that could fit into a larger recommender system based on user activity. If we can extract relevant (and quantifiable) information from the subreddits and consider some metric of similarity, it can be seen immediately that the problem is quantifiable, measurable, and replicable.
+There is no built-in Reddit utility to discover new subreddits. New communities are usually discovered organically, through other users' mentions or through googling. Instead, this project will cluster subreddits based on their comment sections in an effort to find communities similar to a target subreddit. This is an unsupervised classification learning problem that could fit into a larger recommender system based on user activity, similar to a \say{suggested for you} dialogue on other websites. 
+
+I will extract relevant (and quantifiable) information from the subreddit comment sections (simple blocks of text, with the tree structure flattened). Then I will construct a supervised classification problem matching comments to their subreddit name in order to evaluate the power of the extracted information to find similarity. These features will then be used to suggest similar subreddits to subreddits not in the evaluation corpus.
 
 \section{Datasets and Inputs}
 \ifdraft{
@@ -132,12 +136,25 @@ The dataset(s) and/or input(s) to be used in the project are thoroughly describe
 \subsection*{}
 }{}
 
-Reddit provides an API for accessing its data, and this is the best way to get small amounts of up-to-date data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. 
+Reddit provides an API for accessing its data, and this is the best way to get small amounts of up-to-date data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. An example using the Python Reddit API Wrapper (PRAW) is shown in Listing 1.
 
-Luckily, the website \href{https://pushshift.io}{pushshift.io} offers massive monthly data dumps of Reddit comments. This source will provide the corpus for training and testing the model, using the Google BigQuery platform (up to 1 TB of data processing for free per month) to filter on time and subreddit\footnote{See \url{https://pushshift.io/using-bigquery-with-reddit-data/}}. The data will then be exported for local processing.
+\begin{figure}[!htb]
+\begin{lstlisting}[frame=single,language=python,caption={PRAW example}]
+import praw
+## Store credentials in secrets.py
+from secrets import *
+reddit = praw.Reddit(client_id=CLIENT_ID,
+                     client_secret=CLIENT_SECRET,
+                     user_agent=USER_AGENT)
+comments = [ comment for comment in
+	[ submission.comments.list() for submission in 
+	reddit.subreddit('AskReddit').hot(limit=5) ]]
+\end{lstlisting}
+\end{figure}
 
-The goal is to use the big data to build a database of subreddit features, then to use the API to retrieve a given subreddit's current data in order to recommend similar subreddits.
+To avoid the significant time required to download a large number of these comments (due to rate limiting in the API), the website \href{https://pushshift.io}{pushshift.io} offers massive monthly data dumps of Reddit comments. This source will provide the corpus for training and testing the model, using the Google BigQuery platform to filter on time and subreddit; see \url{https://pushshift.io/using-bigquery-with-reddit-data/}. The data will then be exported for local processing.
 
+After this ETL process, the data consists of a large corpus of data points with two features: a raw block of text, and a subreddit label. All other information has been stripped for simplicity. Usable features to predict subreddit (and eventually, similarity to other subreddits) will be extracted from the comments using the principles of Natural Language Processing (NLP). Stratified K-fold cross-validation will be used during the supervised feature evaluation step.
 
 \section{Solution Statement}
 
@@ -156,7 +173,7 @@ Student clearly describes a solution to the problem. The solution is applicable 
 \subsection*{}
 }{}
 
-The problem will be approached in two steps: (1) feature extraction from the subreddits and (2) clustering based on those features. In particular, only the comments of subreddit submissions will be considered (which assumes the culture of a subreddit exists in conversations around submissions, not in the submissions themselves). The comments will be analyzed using some natural language processing tools, and the results of that analysis will be used to find clusters of subreddits.
+The problem will be approached in two steps: (1) feature extraction from the subreddits and (2) clustering based on those features. In particular, only the comments of subreddit submissions will be considered (which assumes the culture of a subreddit exists in conversations around submissions, not in the submissions themselves). The comments will be analyzed using some natural language processing tools, and the results of that analysis will be used to find clusters of subreddits. For examples of algorithms to be used, see Section 7: Project Design, below.
 
 \section{Benchmark Model}
 \ifdraft{
@@ -242,7 +259,7 @@ The project will explore and compare many modern tools for feature extraction:
 Some of these are tools for word embedding: mapping each word of a document to a point in some vector space. There are several options to aggregate the embeddings of each word in a document:
 \begin{itemize}
 	\item Simple averaging techniques
-	\item Training a convnet from scratch on \texttt{word2vec} inputs
+	\item Training a convnet from scratch on \texttt{word2vec} inputs (note that the final dense classifier layers will be stripped; here we are only considering feature extraction)
 	\item \texttt{doc2vec} (deep learning tool for dense sentence embeddings)
 	\item Transfer learning from pre-trained deep networks.
 \end{itemize}
@@ -250,7 +267,8 @@ These feature extractors will be tuned and then benchmarked for time and accurac
 \begin{itemize}
 	\item Multinomial Naive Bayes
 	\item Approximate nearest neighbors (e.g., \texttt{Annoy}\autocite{Annoy})
-	\item \texttt{xgboost} or other vanilla classification methods.
+	\item \texttt{xgboost} or other vanilla classification methods
+	\item Dense and shallow neural networks (especially for the deep learning feature extraction techniques like \texttt{doc2vec}).
 \end{itemize}
 Parallelization and other big data techniques may be explored for some of these tools, as time allows. Most of these tools are easily implemented in \texttt{scikit-learn}\autocite{scikit-learn}, \texttt{gensim}\autocite{gensim}, or \texttt{keras}\autocite{keras}.
 
@@ -261,7 +279,6 @@ Proposal follows a well-organized structure and would be readily understood by i
 \end{specs}
 }{}
 
-\clearpage
 \printbibliography
 
 %\bibliography{references}
