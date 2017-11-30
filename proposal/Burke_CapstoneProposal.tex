@@ -6,7 +6,6 @@
 % Math, plots, links, and quotes
 \usepackage{amsmath,amsfonts,amssymb,amsthm}
 \usepackage{mathtools}
-\usepackage{graphicx,float}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,%
@@ -28,7 +27,9 @@
 \usepackage{chngcntr}
 \counterwithout{figure}{section}
 
+\usepackage{float}
 \usepackage{listings}
+\usepackage{minted}
 
 \usepackage[backend=bibtex,style=numeric-comp]{biblatex}
 \bibliography{references}
@@ -61,7 +62,7 @@
 \title{
 Machine Learning Engineer Nanodegree\\
 \Large Capstone Proposal}
-\date{November \nth{25}, 2017}
+\date{November \nth{29}, 2017}
 \author{Lee Burke}
 
 \begin{document}
@@ -90,13 +91,13 @@ Student briefly details background information of the domain from which the proj
 
 Natural language processing is an essential but difficult application of machine learning. Language is as complex as the meaning which it conveys; as our understanding of the world is contingent on incomplete and shifting knowledge, so too is our language a fuzzy shadow of crisp logical formalism. Indeed, teaching a machine to fully parse language is perhaps equivalent to teaching it to comprehend, like a child learning to speak. Clearly, the automatic extraction of semantic features from raw text is difficult.
 
-Nonetheless, much progress has been made. In 1963, Mosteller and Wallace used Bayesian statistics to analyze the authorship of \emph{The Federalist Papers}\autocite{Mosteller1963}. Decades years later, these foundations are still recognizable (e.g., the hierarchical Bayesian approach of Latent Dirichlet Allocation in \cite{Blei2003}). The data revolution (see, e.g., \cite{fourthparadigm}) has leveraged these statistical techniques to power new technologies: everyone has a virtual assistant in their pocket capable of responding to commands.
+Nonetheless, much progress has been made. In 1963, Mosteller and Wallace used Bayesian statistics to analyze the authorship of \emph{The Federalist Papers}\cite{Mosteller1963}. Decades later, these foundations are still recognizable (e.g., the hierarchical Bayesian approach of Latent Dirichlet Allocation in \cite{Blei2003}). The data revolution (see, e.g., \cite{fourthparadigm}) has leveraged these statistical techniques to power new technologies: everyone has a virtual assistant in their pocket capable of responding to commands.
 
-This project will explore modern techniques for language processing, including \texttt{word2vec}, \texttt{doc2vec} and related technologies, and older tools like LDA. It will bring these tools to bear on the automatic classification of text in the same vein as Mosteller and Wallace's research decades ago. More recent similar projects include attempts to automatically categorize Hacker News articles\footnote{\url{https://techcrunch.com/2017/05/14/building-a-smarter-hacker-news/}} and a current Kaggle.com playground competition to identify the authors of horror story snippets \footnote{\url{https://www.kaggle.com/c/spooky-author-identification}}.
+This project will explore modern techniques for language processing, including \texttt{word2vec}, \texttt{doc2vec} and related technologies, and older tools like LDA. It will bring these tools to bear on the automatic classification of text in the same vein as Mosteller and Wallace's research decades ago. More recent similar projects include attempts to automatically categorize Hacker News articles\footnote{\url{https://techcrunch.com/2017/05/14/building-a-smarter-hacker-news/}} and a playful new book exploring statistical insights into literature.\footnote{Ben Blatt. \emph{Nabokov's Favorite Word is Mauve}. New York, New York: Simon \& Schuster, 2017.}
 
 In particular, the semantic and syntactic qualities of various Reddit.com communities will be compared. Reddit is one of the most-trafficked domains on the internet, with thousands of interconnected message boards and millions of submissions per day\cite{redditblog:2015}. Analysis is made interesting by the organically user-generated structure of the site, the semi-anonymous nature of Reddit user accounts, and the free-wheeling nature of casual conversation. Surfing Reddit is like walking through the biggest crowd on Earth, listening to everyone else's conversations.
 
-Reddit is organized like a forest graph: anyone can found a \emph{subreddit}, the root of a tree. To this subreddit, anyone can post a \emph{submission}, the first level of branches. These submissions can be blocks of text or links to other websites (often images or videos). On each submission, anyone can leave a \emph{comment}, and can comment on other comments. The conversations happening on Reddit occur almost exclusively in the comments: submissions are usually short, and have much less back-and-forth among users. Subreddits often develop their own sub-cultures (e.g., \href{https://reddit.com/r/catsstandingup}{/r/catsstandingup}, where only the comments saying, \say{cat.}, are allowed). These sub-cultures form the primary application of this project.
+Reddit is organized like a forest graph: anyone can found a \emph{subreddit}, the root of a tree. To this subreddit, anyone can post a \emph{submission}, the first level of branches. These submissions can be blocks of text or links to other websites (often images or videos). On each submission, anyone can leave a \emph{comment}, and anyone can comment on other comments. The conversations happening on Reddit occur almost exclusively in this comment section: submissions are usually short, and have much less back-and-forth among users. Subreddits often develop their own sub-cultures (e.g., \href{https://reddit.com/r/catsstandingup}{/r/catsstandingup}, where submissions must be pictures of cats standing up on two legs, and the comment section is edited to say only, \say{cat.}, hundreds of times). These sub-cultures form the primary application of this project.
 
 \section{Problem Statement}
 
@@ -118,7 +119,9 @@ Student clearly describes the problem that is to be solved. The problem is well 
 
 There is no built-in Reddit utility to discover new subreddits. New communities are usually discovered organically, through other users' mentions or through googling. Instead, this project will cluster subreddits based on their comment sections in an effort to find communities similar to a target subreddit. This is an unsupervised classification learning problem that could fit into a larger recommender system based on user activity, similar to a \say{suggested for you} dialogue on other websites. 
 
-I will extract relevant (and quantifiable) information from the subreddit comment sections (simple blocks of text, with the tree structure flattened). Then I will construct a supervised classification problem matching comments to their subreddit name in order to evaluate the power of the extracted information to find similarity. These features will then be used to suggest similar subreddits to subreddits not in the evaluation corpus.
+Mitchell defines a machine to be learning if its performance at a task (measured by a measure) improves with experience, as cited in \cite{Goodfellow-et-al-2016}. Here, I will cluster subreddits (the task) learning only from the text of the comment sections of those subreddits (the experience), and will assess this clustering according to a similarity score (the performance measure, see Section 6). In the process of feature engineering, I will also explore classifying subreddits (using a usual classification scorer like accuracy) using the text of the comment sections as well as their subreddit labels.
+
+%I will extract relevant (and quantifiable) information from the subreddit comment sections (simple blocks of text, with the tree structure flattened). Then I will construct a supervised classification problem matching comments to their subreddit name in order to evaluate the power of the extracted information to find similarity. These features will then be used to suggest similar subreddits to subreddits not in the evaluation corpus.
 
 \section{Datasets and Inputs}
 \ifdraft{
@@ -136,25 +139,13 @@ The dataset(s) and/or input(s) to be used in the project are thoroughly describe
 \subsection*{}
 }{}
 
-Reddit provides an API for accessing its data, and this is the best way to get small amounts of up-to-date data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. An example using the Python Reddit API Wrapper (PRAW) is shown in Listing 1.
+Reddit provides an API for accessing its data, and this is the best way to get small amounts of real-time data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. To avoid this rate limiting, some users have made available massive monthly data dumps of Reddit comments on the Google cloud. This source will provide the corpus for training and testing the model, using the Google BigQuery platform to filter on time, subreddit, and score.\footnote{In addition to posting submissions or comments, users may vote either up or down on any given post. The balance of upvotes and downvotes is given as the score.} The data will then be exported for local processing. 
 
-\begin{figure}[!htb]
-\begin{lstlisting}[frame=single,language=python,caption={PRAW example}]
-import praw
-## Store credentials in secrets.py
-from secrets import *
-reddit = praw.Reddit(client_id=CLIENT_ID,
-                     client_secret=CLIENT_SECRET,
-                     user_agent=USER_AGENT)
-comments = [ comment for comment in
-	[ submission.comments.list() for submission in 
-	reddit.subreddit('AskReddit').hot(limit=5) ]]
-\end{lstlisting}
-\end{figure}
+The exact SQL query used to extract the data is shown in Listing \ref{listing:bigquery}. It selects comments on three slices: time (from May 2015), subreddit (the top 100 most active subreddits) and score (the top 20,000 comments in each subreddit), for a total of two million examples. The historical data is chosen over more recent data due to memory constraints in BigQuery while sorting comments by score.
 
-To avoid the significant time required to download a large number of these comments (due to rate limiting in the API), the website \href{https://pushshift.io}{pushshift.io} offers massive monthly data dumps of Reddit comments. This source will provide the corpus for training and testing the model, using the Google BigQuery platform to filter on time and subreddit; see \url{https://pushshift.io/using-bigquery-with-reddit-data/}. The data will then be exported for local processing.
 
-After this ETL process, the data consists of a large corpus of data points with two features: a raw block of text, and a subreddit label. All other information has been stripped for simplicity. Usable features to predict subreddit (and eventually, similarity to other subreddits) will be extracted from the comments using the principles of Natural Language Processing (NLP). Stratified K-fold cross-validation will be used during the supervised feature evaluation step.
+
+After this ETL process, the data consists of a large corpus of data points with two features: a raw block of text, and a subreddit label. All other information has been stripped for simplicity. Usable features to predict subreddit (and eventually, similarity to other subreddits) will be extracted from the comments using the principles of Natural Language Processing (NLP). K-fold cross-validation will be used during supervised feature evaluation and hyperparameter optimization (the scikit-learn implementation maintains class balance in the train-test splitting).
 
 \section{Solution Statement}
 
@@ -191,24 +182,17 @@ A benchmark model is provided that relates to the domain, problem statement, and
 \subsection*{}
 }{}
 
-The simplest model takes word frequencies, then finds a linear discriminant or applies Naive Bayes to classify each document (each of these are used in the famous Mosteller and Wallace paper\cite{Mosteller1963}). A simple implementation of this method with multinomial Naive Bayes is shown in Listing 1, where \texttt{X} contains comments and \texttt{y} is a label encoding of the subreddit names.
+\subsection{Feature Extraction Benchmark}
+The simplest model for the supervised problem takes word frequencies, then finds a linear discriminant or applies Naive Bayes to classify each document (each of these are used in the famous Mosteller and Wallace paper\cite{Mosteller1963}). A simple implementation of this method with multinomial Naive Bayes is shown in Listing \ref{listing:featurebenchmark}, where \texttt{X} contains comments and \texttt{y} is a label encoding of the subreddit names.
 
 A more modern alternative is \texttt{FastText} from Facebook Research\footnote{\url{https://github.com/facebookresearch/fastText}}: This extremely fast method has proven to be competitive with much more complex models at the forefront of contemporary research.
 
-\begin{figure}[!htb]
-\begin{lstlisting}[frame=single,language=python,caption={Benchmark model}]
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import cross_validate
 
-vectorizer = CountVectorizer()
-clf = MultinomialNB()
-counts_multinomialNB = Pipeline([('counts', vectorizer), ('MultiNB', clf)])
 
-scores = cross_validate(counts_multinomialNB, X, y)
-\end{lstlisting}
-\end{figure}
+\subsection{Clustering Benchmark}
+As discussed in Section 6.2, comparing clustering algorithms is difficult, but we may nonetheless use the commonplace K-Means algorithm as a simple model to compare against. Due to the high-dimensional, sparse output of the frequency matrix used in Listing \ref{listing:clusterbenchmark}, we perform a simple feature selection using the singular value decomposition.
+
+
 
 \section{Evaluation Metrics}
 
@@ -226,9 +210,27 @@ Student proposes at least one evaluation metric that can be used to quantify the
 \end{specs}
 \subsection*{}
 }{}
-The obvious metrics are cost and accuracy: we want to classify the comments correctly as cheaply as possible. Cost will be measured as speed for both transformation/training and predicting, while accuracy will be defined to be the number of correct predictions divided by the total number of predictions. Furthermore, it is often interesting to compare f-scores among algorithms, which more clearly show the tradeoff between precision and recall. The usual f1 score is defined as $2 P R / (P+R)$ where $P$ is precision and $R$ is recall. For the multi-class case, we may simply take the average of the score for each class, weighted by the size of the class.
 
-Qualitative analysis may also be interesting, so visualization of word/document embeddings will be explored, as well as interpretability thereof: can we say with confidence why a given comment is classified a certain way?
+\subsection{Feature Extraction Evaluation}
+Due to the inherently subjective nature of unsupervised learning problems (if we had an objective, it would no longer be unsupervised!), this project will attempt to compare feature extraction methods using a supervised learning problem, then apply clustering algorithms on the extracted features. Supervised evaluation metrics are much easier to come by: accuracy is defined to be the number of correct predictions divided by the total number of predictions. Furthermore, it is often interesting to compare f-scores among algorithms, which more clearly show the tradeoff between precision and recall. The usual f1 score is defined as $2 P R / (P+R)$ where $P$ is precision and $R$ is recall. For the multi-class case, we may simply take the average of the score for each class, weighted by the size of the class.
+
+\subsection{Internal Clustering Evaluation}
+Ideally, we would \emph{indirectly} measure the utility of our solution in practice; we could ask users how similar the suggested subreddits seem to them. This is infeasible for early stages of product development. We could \emph{manually} assess the quality of clustering, but without enough human supervision (at which point, why not indirectly evaluate through actual product release?) this is subject to strong bias and noise. Once these studies have been done, there are a number of \emph{external} evaluation techniques to compare computed clusters to gold standard, ground-truth labels.
+
+For fully automated, fully unsupervised learning, it is not clear how best to compare clustering methods \emph{internally}, because any measure of clustering goodness could (theoretically) be used as a clustering objective itself. Considering clustering methods as optimization problems, we are, in effect, comparing how similar each method's objective function is to the chosen evaluation function \cite{Feldman-textmining}. Thus, much care should be taken when interpreting internal evaluations of clustering algorithms.
+
+Nonetheless, we can discuss what good clustering looks like. We want cohesion and separation; that is, we want small intra-cluster distances and large inter-cluster distances. An easy to understand, worst-case evaluation metric is the Dunn index, where we take the ratio of the worst-case separation to the worst case cohesion: Let $\delta_{ij}$ be any measure of the distance between points clusters $i$ and $j$, and let $\Delta_k$ be any measure of the distance between points within cluster $k$. Then the Dunn index $D$ is defined as
+$$ D = \frac{\min_{i\ne j } \delta_{ij}}{\max_{k}\Delta_k}. $$
+Better methods receive a larger Dunn index, as clusters become more tightly cohesive and better separated. There are many other metrics, including the Davies-Bouldin index, an average of worst cases per cluster, and the Calinski-Harabaz index, which uses inter- and intra-cluster dispersion matrices. 
+
+This project will instead use the silhouette score, a normalized ratio of cohesion and separation for each point: given data point $x_i$, find the average distance to other points in its cluster $a_i$, and the average distance to other clusters $B_{ij}$. Define $b_i=\min_{j}B_{ij}$ (the average distance to the nearest cluster). Then the silhouette score is given by
+$$ S_i = \frac{b_i-a_i}{\max\{a_i,b_i\}}.$$
+This score is bounded within $[-1,1]$, with higher scores indicating good separation and cohesion. Aggregate scores are found by averaging the point-wise scores. This metric is easily interpretable because poorly clustered points are already labeled as such. As discussed above, this metric privileges some clustering algorithms (e.g. K-Means) over others (e.g., density-based methods).
+
+\subsection{Other Evaluations}
+This project will also consider the cost of each method: when processing the massive data available from a site like Reddit, slow algorithms may be prohibitively expensive to implement. Cost will be measured as speed for both feature extraction and the actual clustering.
+
+Qualitative analysis may also be interesting, so visualization of word/document embeddings will be explored, as well as interpretability thereof: can we say with confidence why a given comment or subreddit is classified a certain way?
 
 \section{Project Design}
 \ifdraft{
@@ -246,7 +248,7 @@ Student summarizes a theoretical workflow for approaching a solution given the p
 \subsection*{}
 }{}
 
-The project will proceed in two phases. First, feature extraction tools will be compared using a supervised problem: given a corpus of comments from popular subreddits, compute the likelihood that a new comment belongs to any given subreddit (or simply assign each comment to a subreddit, as this is a classification and not a regression problem). Visualization and qualitative analysis of extracted features will also be performed. Once an appropriate set of features is identified, the unsupervised problem will transform comments from a particular subreddit and then find similar subreddits. More complex recommender systems will not be considered.
+The project will proceed in two phases. First, feature extraction tools will be compared using a supervised problem: given a corpus of comments from popular subreddits, compute the likelihood that a new comment belongs to any given subreddit (or simply assign each comment to a subreddit, as no certificate for regression exists in this data). Visualization and qualitative analysis of extracted features will also be performed. Once an appropriate set of features is identified, the unsupervised problem will transform comments from a particular subreddit and then find similar subreddits. More complex recommender systems will not be considered.
 
 The project will explore and compare many modern tools for feature extraction:
 \begin{itemize}
@@ -259,7 +261,7 @@ The project will explore and compare many modern tools for feature extraction:
 Some of these are tools for word embedding: mapping each word of a document to a point in some vector space. There are several options to aggregate the embeddings of each word in a document:
 \begin{itemize}
 	\item Simple averaging techniques
-	\item Training a convnet from scratch on \texttt{word2vec} inputs (note that the final dense classifier layers will be stripped; here we are only considering feature extraction)
+	\item Training a convnet from scratch on \texttt{word2vec} inputs (note that the final dense classifier layers may be superfluous; here we are only considering feature extraction)
 	\item \texttt{doc2vec} (deep learning tool for dense sentence embeddings)
 	\item Transfer learning from pre-trained deep networks.
 \end{itemize}
@@ -270,6 +272,13 @@ These feature extractors will be tuned and then benchmarked for time and accurac
 	\item \texttt{xgboost} or other vanilla classification methods
 	\item Dense and shallow neural networks (especially for the deep learning feature extraction techniques like \texttt{doc2vec}).
 \end{itemize}
+Finally, clustering on the features will be performed using a broad spectrum of clustering techniques, including
+\begin{itemize}
+	\item K-Means and variants
+	\item Distribution-based mixture models
+	\item Density-based methods like DBSCAN
+	\item Adaptations to big data, like subspace clustering.
+\end{itemize}
 Parallelization and other big data techniques may be explored for some of these tools, as time allows. Most of these tools are easily implemented in \texttt{scikit-learn}\autocite{scikit-learn}, \texttt{gensim}\autocite{gensim}, or \texttt{keras}\autocite{keras}.
 
 \ifdraft{
@@ -279,11 +288,121 @@ Proposal follows a well-organized structure and would be readily understood by i
 \end{specs}
 }{}
 
+\clearpage
+\section*{Listings}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{sql}
+SELECT
+  body,
+  subreddit,
+FROM (
+  SELECT
+    body,
+    subreddit,
+    score,
+    ROW_NUMBER() OVER(PARTITION BY subreddit ORDER BY score DESC) rows_score
+  FROM
+    [fh-bigquery:reddit_comments.2015_05]
+  WHERE
+    subreddit IN (
+    SELECT
+      subreddit
+    FROM (
+      SELECT
+        COUNT(*) num_coms,
+        subreddit
+      FROM
+        [fh-bigquery:reddit_comments.2015_05]
+      GROUP BY
+        subreddit
+      ORDER BY
+        num_coms DESC
+      LIMIT
+        100)))
+WHERE
+  rows_score <= 20000
+\end{minted}  
+\caption{BigQuery Example (44.1s elapsed, 9.94 GB processed)}
+\label{listing:bigquery}
+\end{listing}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{python}
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_validate
+
+vectorizer = CountVectorizer()
+clf = MultinomialNB()
+counts_multinomialNB = Pipeline([('counts', vectorizer), ('MultiNB', clf)])
+
+scores = cross_validate(counts_multinomialNB, X, y)
+\end{minted}
+\caption{Feature Extraction Benchmark model.}
+\label{listing:featurebenchmark}
+\end{listing}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{python}
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import TruncatedSVD
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+X = data.body
+vectorizer = CountVectorizer()
+X_freqs = vectorizer.fit_transform(X)
+
+svd = TruncatedSVD(1000)
+X_svd = svd.fit_transform(X_freqs)
+
+clusterer = KMeans(n_clusters=10, random_state=0)
+clusterer.fit(X_svd)
+preds = clusterer.predict(X_svd)
+
+score = silhouette_score(X_svd, preds)
+\end{minted}
+\caption{Clustering Benchmark model.}
+\label{listing:clusterbenchmark}
+\end{listing}
+
 \printbibliography
 
 %\bibliography{references}
 %\bibliographystyle{ieeetr}
 
+%An example using the Python Reddit API Wrapper (PRAW) is shown in Listing 1.
+%
+%\begin{figure}[!htb]
+%\begin{lstlisting}[frame=single,language=python,caption={PRAW example}]
+%import praw
+%## Store credentials in secrets.py
+%from secrets import *
+%reddit = praw.Reddit(client_id=CLIENT_ID,
+%                     client_secret=CLIENT_SECRET,
+%                     user_agent=USER_AGENT)
+%comments = [ comment for comment in
+%	[ submission.comments.list() for submission in 
+%	reddit.subreddit('AskReddit').hot(limit=5) ]]
+%\end{lstlisting}
+%\end{figure}
 
 %\begin{table}[!htb]
 %	\centering
