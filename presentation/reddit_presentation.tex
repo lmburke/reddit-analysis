@@ -1,0 +1,530 @@
+\documentclass[xcolor={dvipsnames}]{beamer}
+\usetheme{szeged}
+\usecolortheme{orchid}
+\beamertemplatenavigationsymbolsempty
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{pdfstartview={Fit}}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multicol}
+
+ \usepackage{vwcol}  
+
+%\setbeamercolor{math text displayed}{fg=Blue!80!Black}
+%\setbeamercolor{math text inlined}{fg=Blue!80!Black}
+
+\setbeamertemplate{caption}[numbered]
+
+\setlength\belowdisplayskip{-7pt}
+
+\title[Reddit Explorer]{Reddit Explorer: \\ Topic Indexing and Page Recommendation}
+\subtitle{\vspace{1em}\href{https://www.github.com/lmburke/reddit-analysis}{github.com/lmburke/reddit-analysis}}
+\author[Lee Burke]{Lee Burke}
+\institute[\insertframenumber/\inserttotalframenumber]{PNNL Interview}
+\date{February 28th, 2018}
+
+\begin{document}
+
+\frame{\titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Preliminaries}
+\frame{
+	\frametitle{Introduction}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.2\textheight,keepaspectratio]{figures/reddit_logo}
+%		\caption{}
+	\end{figure}
+	\begin{itemize}
+		\item Reddit.com had 250 million unique users in 2017
+		\item Message board with posts organized by ``subreddit''
+		\item No easy way to find new subreddits (new communities!)
+		\item Motivation: find new subreddits with similar interests to known communities
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Examples of Subreddits}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=0.425\textwidth, keepaspectratio]{figures/gaming_snap}
+		\hspace{0.05\textwidth}
+		\includegraphics[width=0.425\textwidth, ,keepaspectratio]{figures/politics_snap}
+		\caption{Posts on \href{https://www.reddit.com/r/gaming}{\texttt{/r/gaming}} (left) and \href{https://www.reddit.com/r/politics}{\texttt{/r/politics}} (right)}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Data Preparation}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.25\textheight,keepaspectratio]{figures/gaming_viz}
+		\hspace{0.1\textwidth}
+		\includegraphics[width=\textwidth, height=0.25\textheight,keepaspectratio]{figures/politics_viz}
+		\caption{The most common words in \href{https://www.reddit.com/r/gaming}{\texttt{/r/gaming}} (left) and \href{https://www.reddit.com/r/politics}{\texttt{/r/politics}} (right)}
+	\end{figure}
+	\begin{itemize}
+		\item Reddit API is rate-limited
+		\item Google BigQuery monthly comment dump (October 2017)
+		\item  1000 most popular subreddits, 2000 most upvoted comments 
+		\item Laptop-scale at 0.5 GB
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Preprocessing}
+	\begin{itemize}
+		\item Remove formatting, punctuation, and non-English characters
+		\item Remove empty comments
+		\item Lemmatize: combine conjugations into single word (NLTK)
+		\item Vectorize: split on whitespace
+	\end{itemize}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, keepaspectratio]{figures/dist_subs}
+		\caption{The number of subreddits with any given number of comments after preprocessing is shown.}
+	\end{figure}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Feature Extraction}
+
+\frame{
+	\frametitle{Vectorizing Raw Text}
+	\begin{itemize}
+		\item Co-occurrence matrix: count of each word in each document
+		\item Bag-of-words, n-grams
+		\item Term frequency, inverse document frequency
+		\item Minimum and maximum frequency
+	\end{itemize}
+	\begin{figure}[htbp!]
+		\centering
+		    \begin{tabular}{r|ccc}
+		    & document & frequency & word \\
+		    \midrule
+		    Line 1 & 1 & & 1 \\
+		    Line 2 & & & 1 \\
+		    Line 3 & 1 & 2 & \\
+		    Line 4 & & 1 & 
+		    \end{tabular}
+		\caption{A co-occurrence matrix of this slide}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Vector Space Models}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.25\textheight,keepaspectratio]{figures/matrix_diag}
+	\end{figure}
+	\begin{itemize}
+		\item High-dimensional, sparse vectors $\rightarrow$ smaller, dense vectors
+		\item Basis of new space is a ``topic'', a mixture of words
+		\item Each document is a mixture of topics
+		\item Latent semantic analysis (LSA)
+		\begin{itemize}
+			\item Singular value decomposition
+			\item Maximizes explained co-variance
+			\item Permits topics with negative weights
+		\end{itemize}
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Statistical Models}
+	\begin{columns}
+	\begin{column}{0.6\textwidth}
+	\begin{itemize}
+		\item Probabilistic LSA (pLSA)
+		\begin{itemize}
+			\item Model co-occurrence as multinomial mixture
+			\item Equivalent to a form of non-negative matrix factorization
+		\end{itemize}
+		\item Latent Dirichlet Allocation (LDA)
+		\begin{itemize}
+			\item Blei et al., 2003
+			\item Assume sparse Dirichlet priors
+			\item Few words per topic, few topics per document
+			\item Can be cast as tensor spectral decomposition
+			\item Usually use mini-batch expectation-maximization
+		\end{itemize}
+	\end{itemize}
+	\end{column}
+	\begin{column}{0.4\textwidth}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.25\textheight,keepaspectratio]{figures/LDA_plate}
+		\caption{Plate diagram for the LDA model}
+	\end{figure}
+	\end{column}
+	\end{columns}
+}
+
+\frame{
+	\frametitle{Word Embedding Models}
+	$$ \text{Queen} - \text{Woman} + \text{Man} = \text{King} $$
+	\begin{columns}
+	\begin{column}{0.6\textwidth}
+	\begin{itemize}
+		\item Capture the meaning of words in a vector space
+		\item word2vec (Mikolov et al., 2013)
+		\begin{itemize}
+			\item Dense, shallow neural network
+			\item Current word from its context (continuous BoW)
+			\item Nearby words from current word (skip-gram)
+		\end{itemize}
+	\end{itemize}
+	\end{column}
+	\begin{column}{0.4\textwidth}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=0.8\textwidth,keepaspectratio]{figures/word2vec}
+		\caption{A framework for learning word vectors}
+	\end{figure}
+	\end{column}
+	\end{columns}
+}
+
+\frame{
+	\frametitle{Word Embedding Models: Documents}
+	\begin{columns}
+	\begin{column}{0.6\textwidth}
+	\begin{itemize}
+		\item How to capture the meaning of a sentence?
+		\begin{itemize}
+			\item Weighted average of vectors
+			\item Expensive semantic parsing
+		\end{itemize}
+		\item doc2vec (Le \& Mikolov, 2014)
+		\begin{itemize}
+			\item Embed document meaning in (different) vector space
+			\item Include document vector in word2vec framework
+		\end{itemize}
+	\end{itemize}
+	\end{column}
+	\begin{column}{0.4\textwidth}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=0.8\textwidth,keepaspectratio]{figures/doc2vec}
+		\caption{A framework for learning document vectors}
+	\end{figure}
+	\end{column}
+	\end{columns}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Model Selection}
+
+\frame{
+	\frametitle{Clustering \& Recommendation}
+	\begin{itemize}
+		\item ``Find similar communities'' from vector of document features
+		\item Recommendation: return $n$ results
+		\begin{itemize}
+			\item Nearest Neighbors: determine nearest samples in feature vector space, according to some metric
+			\item Annoy: approximate NN using random projections and tree search
+		\end{itemize}
+		\item Clustering (or segmentation): return all similar results
+		\begin{itemize}
+			\item KMeans: find ``prototype'' mean value to minimize variance
+			\item Birch: build hierarchical tree of sub-clusters, then apply existing agglomerative clustering
+		\end{itemize}
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Comparing Models}
+	\begin{itemize}
+		\item Unsupervised problems hard to assess: no gold-standard labels
+		\item Unsupervised metrics measure cohesion and separation
+		\item Biased toward similar objectives: e.g., Silhouette Score
+	\end{itemize}
+	Truth: $0.39 \pm 0.02$ \hspace{0.03\textwidth} KMeans: $0.48 \pm 0.02$ \hspace{0.03\textwidth} Birch: $0.18 \pm 0.02$
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.4\textheight,keepaspectratio]{figures/clusters1}
+		\includegraphics[height=0.4\textheight,keepaspectratio]{figures/clusters2}
+		\includegraphics[height=0.4\textheight,keepaspectratio]{figures/clusters3}
+		\caption{Artificial data: true labels (left), KMeans (center), Birch (right)}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Classification}
+	\begin{itemize}
+		\item Objective metrics: accuracy, precision, recall, F-$\beta$ scores
+		\item Comparing model performance
+		\begin{itemize}
+			\item Hyperparameter tuning
+			\item Feature selection methods
+		\end{itemize}
+		\item Cross-validated experiments are expensive: down-sample
+		\begin{itemize}
+			\item LSA and KNN
+			\item LDA
+			\item doc2vec
+		\end{itemize}
+		\item Select on final accuracy test
+		\item Tune and select clustering methods
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{LSA and KNN}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam1}
+		\caption{Accuracy and time are plotted against the number of LSA components for various $K$ in KNN. Shaded regions represent one standard deviation in cross-validation.}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{LDA}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam2}
+		\caption{Accuracy and time are plotted against the decay rate ($\kappa$) for various learning offsets ($\tau_0$). Shaded regions represent one standard deviation in cross-validation.}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{doc2vec}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam3}
+		\caption{Accuracy and time are plotted against the number of training iterations for various numbers of components. Shaded regions represent  one standard deviation in cross-validation.}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Results of Hyperparameter Tuning}
+	\begin{itemize}
+		\item KNN: 5 neighbors, `'distance' updating
+		\item LSA: 60 topics
+		\item LDA: Learning rate 0.51, Learning offset 2
+		\item doc2vec: 60 topics, 75 epochs
+	\end{itemize}
+%	\begin{table}[htbp!]
+%		\centering
+%		\caption{Results from various feature extraction methods on full dataset}
+%		\begin{tabular}{r|cc}
+%		& Time & Accuracy (\%) \\
+%		\midrule
+%		Chance & & 0.1 \\
+%		LSA & 16.4 sec & 2.86 \\
+%		pLSA & ? & ? \\
+%		LDA & 4.75 hrs & 2.62 \\
+%		doc2vec & 6.47 hrs & ?
+%		\end{tabular}
+%	\end{table}
+}
+
+\frame{
+	\frametitle{Clustering: K-Means}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam5}
+		\caption{Silhouette score and time are plotted against the average size of each cluster for various feature extraction methods, using online K-Means. Shaded regions represent one standard deviation in cross validation.}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Clustering: Birch}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam4}
+		\caption{Silhouette score and time are plotted against the average size of each cluster for various feature extraction methods, using Birch. Shaded regions represent one standard deviation in cross validation.}
+	\end{figure}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+\frame{
+	\frametitle{Internal Evaluation of Clustering}
+	\begin{table}[htbp!]
+		\centering
+		\caption{Silhouette Scores from various Methods}
+		\begin{tabular}{r|cc}
+		& K-Means & Birch \\
+		\midrule
+%		Chance & & 0.1 \\
+		LSA & 0.246 & 0.265 \\
+		pLSA & 0.359 & 0.420 \\
+		LDA & 0.321 & 0.609 \\
+		doc2vec & 0.114 & 0.133
+		\end{tabular}
+	\end{table}
+}
+
+%\frame{
+%	\frametitle{LSA \& and LDA Topics}
+%	\begin{figure}[htbp!]
+%		\centering
+%		\includegraphics[height=0.65\textheight,keepaspectratio]{figures/topic1}
+%		\caption{}
+%	\end{figure}
+%}
+
+\frame{
+	\frametitle{Example Cluster: Cryptocurrency Subreddits}
+	LSA: \{
+'vertcoin',
+ 'ethereum',
+ 'CryptoCurrency',
+ 'Bitcoin',
+ 'ethtrader',
+ 'Monero',
+ 'waltonchain',
+ 'BitcoinMarkets',
+ 'Iota',
+ 'BitcoinAll',
+ 'Ripple',
+ 'NEO',
+ 'btc'
+ 	\}
+ 	
+ 	\vspace{1em}
+	doc2vec: \{
+'vertcoin',
+ 'ethereum',
+ 'CryptoCurrency',
+ 'Bitcoin',
+ 'ethtrader',
+ 'Monero',
+ 'waltonchain',
+ 'BitcoinMarkets',
+ 'Iota',
+ 'BitcoinAll',
+ 'Ripple',
+ 'NEO',
+ 'btc'
+	\}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.33\textheight,keepaspectratio]{figures/bitcoin_cluster}
+		\caption{Most common words in cryptocurrency cluster (doc2vec, Birch)}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Example Cluster: Music Listener Subreddits}
+	\{
+'Kanye',
+ 'TaylorSwift',
+ 'FrankOcean',
+ 'indieheads',
+ 'hiphopheads',
+ 'bangtan',
+ 'Metalcore',
+ 'listentothis',
+ 'Eminem',
+ 'Metal',
+ 'popheads',
+ 'radiohead',
+ 'deathgrips',
+ 'kpop',
+ 'Music'
+ 	\}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.33\textheight, keepaspectratio]{figures/listeners_cluster}
+		\caption{Most common words in music listener cluster (doc2vec, Birch)}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Example Cluster: Music Maker Subreddits}
+	\{
+'synthesizers',
+ 'makinghiphop',
+ 'WeAreTheMusicMakers',
+ 'brandnew',
+ 'edmproduction',
+ 'Guitar',
+ 'vinyl',
+ 'guitarpedals',
+ 'headphones'
+ 	\}
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[width=\textwidth, height=0.33\textheight, keepaspectratio]{figures/makers_cluster}
+		\caption{Most common words in music maker cluster (doc2vec, Birch)}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Example Recommendation: Cities}
+	\begin{figure}[htbp!]
+	\centering
+		Given /r/Fitness, I recommend... \\
+/r/xxfitness,    at a distance of 0.21\\
+/r/bodybuilding, at a distance of 0.22\\
+/r/weightroom,   at a distance of 0.36\\
+/r/orangetheory, at a distance of 0.39\\
+/r/powerlifting, at a distance of 0.47
+		\caption{Nearest neighbors search for /r/Fitness (doc2vec, Annoy)}
+	\end{figure}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+\frame{
+	\frametitle{Conclusions}
+	\begin{itemize}
+		\item Ultra-cheap LSA is competitive with complex architectures
+		\item Subreddit discovery based on common topics of discussion
+		\item Ordinary users can find new communities
+		\begin{itemize}
+			\item Begin with known pages, like /r/bitcoin
+			\item Find a wealth of other pages
+		\end{itemize}
+		\item Site admins can find and follow problematic communities
+		\begin{itemize}
+			\item No user data: duplicate/fake accounts do not affect results
+			\item Growing concerns of bullying, exploitation, and propaganda
+		\end{itemize}
+		\item Same principles apply to other social media platforms
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{Future Work}
+	\begin{itemize}
+		\item More hyperparameter tuning
+		\item Transfer learning (under active development)
+		\item 50x more data every month (5000x in model tuning)
+		\begin{itemize}
+			\item Re-work algos for distributed data
+			\item Execute with, e.g., Spark
+			\item Update with streaming data
+		\end{itemize}
+		\item Alternate methods: FastText, Faiss, NMSLib
+		\item Market basket analysis: sets of users' frequent subreddits
+		\item Recommend \emph{posts} as well as subreddits
+		\item User interface
+	\end{itemize}
+}
+
+\frame{
+	\frametitle{References}
+	\begin{scriptsize}
+	\begin{itemize}
+		\item Bird, Steven, Edward Loper and Ewan Klein (2009), \textit{Natural Language Processing with Python}. O’Reilly Media Inc.
+		\item Blei, David et al. ``Latent Dirichlet Allocation''. In: \textit{Journal of Machine Learning Research} 3 (2003),
+pp. 993--1022. \url{https://arXiv.org/abs/1111.6189v1}
+		\item Le, Quoc and Tomas Mikolov. Distributed Representations of Sentences and Documents. \url{https://arxiv.org/abs/1405.4053}
+		\item {\v R}eh{\r u}{\v r}ek, Radim and Petr Sojka (2010). ``Software Framework for Topic Modelling with Large Corpora''. In: \textit{Proceedings of the LREC 2010 Workshop on New Challenges for NLP Frameworks}, pp.~45--50. ELRA: Valletta, Malta. \url{http://is.muni.cz/publication/884893/en}
+		\item Scikit-learn: Machine Learning in Python, Pedregosa et al., \textit{JMLR} 12, pp. 2825-2830, 2011.
+		\item Spotify (2018). Annoy. Open source. \url{github.com/spotify/annoy}
+	\end{itemize}
+	\end{scriptsize}
+}
+
+\end{document}
