@@ -1,0 +1,807 @@
+\documentclass[]{article}
+
+% Format page
+\usepackage{fullpage}
+
+% Math, plots, links, and quotes
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,%
+    citecolor=black,%
+    filecolor=black,%
+    linkcolor=black,%
+    urlcolor=black%
+}
+\usepackage[
+    left = ``,%
+    right = '',%
+    leftsub = `,%
+    rightsub = '%
+]{dirtytalk}
+\usepackage{nth}
+
+% Format structure
+\usepackage[titletoc,title]{appendix}
+\usepackage{chngcntr}
+\counterwithout{figure}{section}
+
+\usepackage{float}
+\usepackage{listings}
+\usepackage{minted}
+
+\usepackage{booktabs}
+
+\usepackage{bigfoot}
+
+\usepackage[backend=bibtex,style=numeric-comp]{biblatex}
+\bibliography{references}
+
+\usepackage{ifdraft}
+
+% To do notes
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+
+\ifdraft{ 
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+}{
+\usepackage[disable]{todonotes}
+}
+
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\citeme}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\idea}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+% Indent specs
+\usepackage{changepage}
+\newenvironment{specs}
+  {\adjustwidth{3em}{0pt}}
+  {\endadjustwidth}
+
+% Top matter
+\title{
+Machine Learning Engineer Nanodegree\\
+\Large Capstone Project Report}
+\date{November \nth{29}, 2017}
+\author{Lee Burke}
+
+\begin{document}
+\maketitle
+%\abstract{}
+
+\listoftodos[Notes]
+
+\section{Definition}
+
+\subsection{Project Overview}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, look to provide a high-level overview of the project in layman’s terms. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Has an overview of the project been provided, such as the problem domain, project origin, and related datasets or input data?
+\item Has enough background information been given so that an uninformed reader would understand the problem domain and following problem statement?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Student provides a high-level overview of the project in layman’s terms. Background information such as the problem domain, the project origin, and related data sets or input data is given.
+
+\end{specs}
+\subsection*{}
+}{}
+
+Natural language processing is an essential but difficult application of machine learning. Language is as complex as the meaning which it conveys; as our understanding of the world is contingent on incomplete and shifting knowledge, so too is our language a fuzzy shadow of crisp logical formalism. Indeed, teaching a machine to fully parse language is perhaps equivalent to teaching it to comprehend, like a child learning to speak. Clearly, the automatic extraction of semantic features from raw text is difficult.
+
+Nonetheless, much progress has been made. In 1963, Mosteller and Wallace used Bayesian statistics to analyze the authorship of \emph{The Federalist Papers}\cite{Mosteller1963}. Decades later, these foundations are still recognizable (e.g., the hierarchical Bayesian approach of Latent Dirichlet Allocation (LDA) in \cite{Blei2003}). The data revolution (see, e.g., \cite{fourthparadigm}) has leveraged these statistical techniques to power new technologies: everyone has a virtual assistant in their pocket capable of responding to commands.
+
+This project explores modern techniques for language processing, including \texttt{word2vec}, \texttt{doc2vec} and related technologies, and older tools like LDA. It brings these tools to bear on the automatic classification of text in the same vein as Mosteller and Wallace's research decades ago. More recent similar projects include attempts to automatically categorize Hacker News articles\footnote{\url{https://techcrunch.com/2017/05/14/building-a-smarter-hacker-news/}} and a playful new book exploring statistical insights into literature.\footnote{Ben Blatt. \emph{Nabokov's Favorite Word is Mauve}. New York, New York: Simon \& Schuster, 2017.}
+
+In particular, the semantic qualities of various Reddit.com communities are compared. Reddit is one of the most-trafficked domains on the internet, with thousands of interconnected message boards and millions of submissions per day\cite{redditblog:2015}. Analysis is made interesting by the organically user-generated structure of the site, the semi-anonymous nature of Reddit user accounts, and the free-wheeling nature of casual conversation. Surfing Reddit is like walking through the biggest crowd on Earth, listening to everyone else's conversations. This project attempts to make navigating the crowd more convenient.
+
+Reddit is organized like a forest graph: anyone can found a \emph{subreddit}, the root of a tree. To this subreddit, anyone can submit a \emph{post}, the first level of branches. These posts can be blocks of text or links to other websites (often images or videos). On each post, anyone can leave a \emph{comment}, and anyone can comment on other comments. The conversations happening on Reddit occur almost exclusively in this comment section: submissions are usually short, and have much less back-and-forth among users. Subreddits often develop their own sub-cultures (e.g., \href{https://reddit.com/r/catsstandingup}{/r/catsstandingup}, where submissions must be pictures of cats standing up on two legs, and the comment section is edited to say only, \say{cat.}, hundreds of times). These sub-cultures form the primary application of this project.
+
+\subsection{Problem Statement}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will want to clearly define the problem that you are trying to solve, including the strategy (outline of tasks) you will use to achieve the desired solution. You should also thoroughly discuss what the intended solution will be for this problem. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Is the problem statement clearly defined? Will the reader understand what you are expecting to solve?
+\item Have you thoroughly discussed how you will attempt to solve the problem?
+\item Is an anticipated solution clearly defined? Will the reader understand what results you are looking for?
+\end{itemize}
+
+\subsubsection*{Rubric}
+The problem which needs to be solved is clearly defined. A strategy for solving the problem, including discussion of the expected solution, has been made.
+\end{specs}
+
+\subsection*{}
+}{}
+
+There is no built-in Reddit utility to discover new subreddits. New communities are usually discovered organically, through other users' mentions, or through keyword search. Instead, this project clusters subreddits based on their comment sections in an effort to find communities similar to the comment section of a given post or subreddit. This is an unsupervised clustering problem that could fit into a larger recommender system based on user activity, similar to a \say{suggested for you} dialogue on other websites. 
+
+Mitchell defines a machine to be learning if its performance on a \emph{task} (evaluated by some \emph{measure}) improves with \emph{experience}, as cited in \cite{Goodfellow-et-al-2016}. Here, we cluster subreddits (the task), learning only from the text of the comment sections of those subreddits (the experience), and assessing this clustering according to a similarity score (the performance measure, see Section 1.3). In the process of feature engineering, we also explore classifying subreddits (using a usual classification scorer like accuracy) using the text of the comment sections to predict their subreddit labels.
+
+\subsection{Metrics}
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to clearly define the metrics or calculations you will use to measure performance of a model or result in your project. These calculations and metrics should be justified based on the characteristics of the problem and problem domain. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Are the metrics you’ve chosen to measure the performance of your models clearly discussed and defined?
+\item Have you provided reasonable justification for the metrics chosen based on the problem and solution?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Metrics used to measure performance of a model or result are clearly defined. Metrics are justified based on the characteristics of the problem.
+
+\end{specs}
+\subsection*{}
+}{}
+Different metrics are utilized to evaluate feature engineering methods and clustering methods. Other metrics offer different insights into the solution.
+
+\subsubsection{Feature Engineering Evaluation}
+Due to the inherently subjective nature of unsupervised learning problems (if we had an objective, it would no longer be unsupervised!), this project compares feature engineering methods by framing them as a supervised learning problem, predicting from which subreddit a given comment was taken. Only after suitable features have been found do we apply clustering algorithms. We do this because supervised evaluation metrics are much easier to come by than metrics for clustering: accuracy is defined to be simply the number of correct predictions divided by the total number of predictions. 
+
+It is often interesting to compare F-scores among algorithms, which more clearly show the tradeoff between precision and recall. The usual F1 score is defined as $2 P R / (P+R)$ where $P$ is precision and $R$ is recall. For the multi-class case, we may simply take the average of the score for each class, weighted by the size of the class. However, precision is undefined (and so too the F-score) if no positive identification is made. In a classification problem with many class labels and low accuracy, this is a likely scenario. Thus, we use only accuracy to compare methods.
+
+\subsubsection{Internal Clustering Evaluation}
+Ideally, we would \emph{indirectly} measure the utility of our solution in practice; we could ask users how similar the suggested subreddits seem to them. This is infeasible for early stages of product development. We could \emph{manually} assess the quality of clustering, but without enough human supervision (at which point, why not indirectly evaluate through actual product release?) this is subject to strong bias and noise. Once these studies have been done, there are a number of \emph{external} evaluation techniques to compare computed clusters to ground-truth labels.
+
+For fully automated, fully unsupervised learning, it is not clear how best to compare clustering methods \emph{internally}, because any measure of clustering goodness could (theoretically) be used as a clustering objective itself. Considering clustering methods as optimization problems, we are, in effect, comparing how similar each method's objective function is to the chosen evaluation function \cite{Feldman-textmining}. Thus, much care should be taken when interpreting internal evaluations of clustering algorithms.
+
+Nonetheless, we can discuss what good clustering looks like. In the most abstract case, we consider each data point to be an $n$-dimensional vector in some normed vector space (where each dimension represents a feature and the norm gives us a notion of distance). To cluster these points best, we want cohesion within and separation between clusters; that is, we want small intra-cluster distances and large inter-cluster distances. An easy to understand, worst-case evaluation metric is the Dunn index, where we take the ratio of the worst-case separation to the worst case cohesion: Let $\delta_{ij}$ be any measure of the distance between points in clusters $i$ and $j$, and let $\Delta_k$ be any measure of the distance between points within cluster $k$. Then the Dunn index $D$ is defined as
+$$ D = \frac{\min_{i\ne j } \delta_{ij}}{\max_{k}\Delta_k}. $$
+Better methods receive a larger Dunn index, as clusters become more tightly clustered and better separated. There are many other metrics, including the Davies-Bouldin index, an average of worst cases per cluster, and the Calinski-Harabaz index, which uses inter- and intra-cluster dispersion matrices. 
+
+This project instead uses the silhouette score, a normalized ratio of cohesion and separation for each point: given data point $x_i$, find the average distance to other points in its own cluster $a_i$, and the average distance to other clusters $B_{ij}$. Define $b_i=\min_{j}B_{ij}$ (the average distance to the nearest cluster). Then the silhouette score is given by
+$$ S_i = \frac{b_i-a_i}{\max\{a_i,b_i\}}.$$
+This score is bounded within $[-1,1]$, with higher scores indicating good separation and cohesion. Aggregate scores are found by averaging the point-wise scores. This metric is easily interpretable because poorly clustered points are already labeled as such. As discussed above, this metric privileges some clustering algorithms (e.g. K-Means) over others (e.g., density-based methods).
+
+\subsubsection{Other Evaluations}
+This project also considers the cost of each method: when processing the massive data available from a site like Reddit, slow algorithms may be prohibitively expensive to implement. Cost will be measured as clock time required for both feature engineering and the actual clustering.
+
+Qualitative analysis may also be interesting, so visualization of word/document embeddings are explored, as well as interpretability thereof: can we say with confidence why a given comment or subreddit is classified a certain way?
+
+\section{Analysis}
+
+\subsection{Data Exploration}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will be expected to analyze the data you are using for the problem. This data can either be in the form of a dataset (or datasets), input data (or input files), or even an environment. The type of data should be thoroughly described and, if possible, have basic statistics and information presented (such as discussion of input features or defining characteristics about the input or environment). Any abnormalities or interesting qualities about the data that may need to be addressed have been identified (such as features that need to be transformed or the possibility of outliers). Questions to ask yourself when writing this section:
+\begin{itemize}
+\item If a dataset is present for this problem, have you thoroughly discussed certain features about the dataset? Has a data sample been provided to the reader?
+\item If a dataset is present for this problem, are statistics about the dataset calculated and reported? Have any relevant results from this calculation been discussed?
+\item If a dataset is **not** present for this problem, has discussion been made about the input space or input data for your problem?
+\item Are there any abnormalities or characteristics about the input space or dataset that need to be addressed? (categorical variables, missing values, outliers, etc.)
+\end{itemize}
+
+\subsubsection*{Rubric}
+If a dataset is present, features and calculated statistics relevant to the problem have been reported and discussed, along with a sampling of the data. In lieu of a dataset, a thorough description of the input space or input data has been made. Abnormalities or characteristics about the data or input that need to be addressed have been identified.
+\end{specs}
+\subsection*{}
+}{}
+
+Reddit provides an API for accessing its data, and this is the best way to download small amounts of real-time data. However, Reddit enforces a 30 request per minute limit, so trolling through millions of posts may be difficult. To avoid this rate limiting, user \verb|Stuck_in_the_Matrix| has made available massive monthly data dumps of Reddit comments on the Google cloud \cite{data-dump}. This source will provide the corpus for training and testing the model. 
+
+In October 2017, there were about 86,000,000 comments posted to Reddit, totaling around 23 GB of data. To pare this dataset down to be under 500 MB, we use the Google BigQuery platform to filter on time, subreddit, and score.\footnote{In addition to posting submissions or comments, users may vote either up or down on any given post. The difference between the numbers of upvotes and downvotes is called the score.} The exact SQL query used to extract the data is shown in Listing \ref{listing:bigquery}. It selects comments on three slices: time (October 2017), subreddit (the top 1000 subreddits, ranked by number of comments) and score (the top 2000 comments in each subreddit, ranked by score), for a total of about two million examples. To stay within memory constraints on BigQuery, these are taken from a 10\% random sample of all the comments posted to Reddit in October 2017. This random sampling leads to some variation in the number of comments per subreddit, as shown in Figure \ref{fig:comment_hist}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/dist_subs}
+\caption{The distribution of comments over subreddit label is shown for this project's dataset, after preprocessing.}
+\label{fig:comment_hist}
+\end{figure}
+We then export the data from BigQuery and load into a \texttt{Pandas} dataframe. 
+
+After this ad-hoc ETL process transforms the big data dump into more manageable small data, the dataset consists of about 1.9 million data points with only two features: a variable-length block of text and a subreddit label. Other information (time stamps, usernames, and scores) have been stripped for simplicity.
+
+\subsection{Exploratory Visualization}
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to provide some form of visualization that summarizes or extracts a relevant characteristic or feature about the data. The visualization should adequately support the data being used. Discuss why this visualization was chosen and how it is relevant. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Have you visualized a relevant characteristic or feature about the dataset or input data?
+\item Is the visualization thoroughly analyzed and discussed?
+\item If a plot is provided, are the axes, title, and datum clearly defined?
+\end{itemize}
+
+\subsubsection*{Rubric}
+A visualization has been provided that summarizes or extracts a relevant characteristic or feature about the dataset or input data with thorough discussion. Visual cues are clearly defined.
+\end{specs}
+\subsection*{}
+}{}
+
+To justify the conceit of clustering subreddits based on the contents of their comment sections, we present an initial analysis of some particularly cohesive subreddits and how they compare to Reddit as a whole. Using Andreas Mueller's wordcloud package \cite{wordcloud}, we present the most frequent words in each collection of comments as a wordcloud.
+
+Figure \ref{fig:wordcloud_all} shows the most frequent words overall (except the stopwords built into the wordcloud package). 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/all_viz}
+\caption{The most frequent words in the entire dataset are shown with height proportional to frequency.}
+\label{fig:wordcloud_all}
+\end{figure}
+Figures \ref{fig:wordcloud_gaming} and \ref{fig:wordcloud_politics} show the most frequent words in the \texttt{gaming} and \texttt{politics} subreddits, respectively.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/gaming_viz}
+\caption{The most frequent words in /r/gaming are shown with height proportional to frequency.}
+\label{fig:wordcloud_gaming}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/politics_viz}
+\caption{The most frequent words in /r/politics are shown with height proportional to frequency.}
+\label{fig:wordcloud_politics}
+\end{figure}
+We see already that the word \say{game} may help distinguish \texttt{gaming}, and that \say{Trump}, \say{Republican}, and \say{president} may distinguish \texttt{politics}.
+
+\subsection{Algorithms and Techniques}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to discuss the algorithms and techniques you intend to use for solving the problem. You should justify the use of each one based on the characteristics of the problem and the problem domain. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Are the algorithms you will use, including any default variables/parameters in the project clearly defined?
+\item Are the techniques to be used thoroughly discussed and justified?
+\item Is it made clear how the input data or datasets will be handled by the algorithms and techniques chosen?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Algorithms and techniques used in the project are thoroughly discussed and properly justified based on the characteristics of the problem.
+\end{specs}
+\subsection*{}
+}{}
+
+As discussed above, this project proceeds in two phases: feature extraction (measured using visualization sanity checks and classification scores) and clustering (measured with a similarity score).
+
+\subsubsection{Methods for Feature Extraction}
+The simplest technique for feature extraction is a bag-of-words term frequency matrix (tf): the frequency that each word appears in each document is stored in a matrix (words vs. documents). Each document is then represented by a vector of word frequencies. This is sometimes referred to as a co-occurrence matrix, showing the probability of a word and document occurring together. Word order and other syntactical information is completely lost in this representation. A common improvement to this representation is term frequency/inverse document frequency (tf/idf), which adds weight to the frequency of a word in a document according to how infrequently it appears in the entire corpus; this puts less emphasis on words common in all documents. 
+
+The tf/idf representation is still unwieldy because it is so high-dimensional (if often quite sparse). We seek a map from the word/document vector space to some lower dimensional representation which retains as much useful information as possible from the original co-occurrence matrix. 
+
+First, Latent Semantic Analysis (LSA, sometimes called Latent Semantic Indexing, as it was pioneered for information retrieval)\cite{Feldman-textmining} approaches this problem using a truncated singular vector decomposition (or SVD, a common linear algebra tool related to an eigen- decomposition; the details of computing such a decomposition are not discussed here).
+
+A second technique is probabilistic LSA (pLSA)\cite{Feldman-textmining}, which models a given word/document co-occurrence as a mixture of conditionally independent multinomial distributions:
+\begin{align}
+	P(w,d)=\sum _{c}P(c)P(d|c)P(w|c)=P(d)\sum _{c}P(c|d)P(w|c) 
+\end{align}
+Interestingly, modeling the co-occurrences in this way is equivalent to another standard decomposition from linear algebra: the non-negative matrix factorization using a generalized Kullback-Leibler divergence (NMF-KL). Showing why these are equivalent and the details in computing the decomposition are beyond the scope of this project.
+
+The third technique is Latent Dirichlet Analysis (LDA)\cite{Blei2003}, pLSA with a Dirichlet prior; which is to say that the probability that each topic is found in a document is given by a (sparse) Dirichlet distribution, and the same for each word in a topic. In effect, this assumes that only a few words make up each topic, and only a few topics each document. The LDA model is equivalent to certain tensor decompositions\footnote{See AWS SageMaker, \url{https://docs.aws.amazon.com/sagemaker/latest/dg/lda-how-it-works.html}}, but the LDA is usually accomplished using an expectation-maximization algorithm similar to those found in certain deep learning models.
+
+The above algorithms are implemented in scikit-learn\cite{scikit-learn}.
+
+Finally, neural network-based models have emerged as the state-of-the-art in many fields of machine learning, and NLP is not immune. Google's \texttt{word2vec}, and associated \texttt{doc2vec}, (among many other architectures) leverage neural structures for efficient, accurate vector representations of documents and words\cite{doc2vec}. In particular, word2vec assigns a vector to each word in a document, then trains these to predict nearby words using a dense, three-layer network. These vectors then work as proxies for the meaning of the words, so that "Queen minus Woman plus Man equals King". The doc2vec framework simply keeps an extra vector to track the semantic content of the document as well. These frameworks are visualized in Figure \ref{fig:doc2vec}. The implementation of doc2vec used in this project is from gensim\cite{gensim}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.4\textwidth]{figures/word2vec}
+\includegraphics[width=0.4\textwidth]{figures/doc2vec}
+\caption{Frameworks for training word2vec (left) and doc2vec (right) are reproduced from \cite{doc2vec}.}
+\label{fig:doc2vec}
+\end{figure}
+
+The central challenge of this project is to compare the speed and efficacy of these several methods, as it is difficult to know a priori what method will work best for this particular application.
+
+\subsubsection{Methods for Clustering}
+As discussed in Section 1.3.2, ranking clustering methods is difficult, even after implementation. To do so a priori is clearly a fallacy. Instead, this project simply explores two standard options for online clustering, listed below.
+
+The pre-eminent baseline clustering method is K-means, which attempts to form a specified number ($K$) of clusters by iteratively assigning a centroid (the means) to each sample that minimizing a target function to improve cohesion and separation. Another method is Birch, which builds a hierarchical tree of sub-clusters, then applies an agglomerative clustering algorithm to build the final clusters. Both of these are implemented in scikit-learn\cite{scikit-learn}. Most other clustering methods are severely limited by available memory: these two have variants which can be trained in mini-batches, using only a portion of the data at any given time.
+
+Spotify's \texttt{Annoy} is an approximate nearest neighbor solver which allows for a memory-efficient, fast indexing of nearby vectors\cite{annoy}. This is used for a final recommendation process: we simply find the nearest $n$ vectors to a given subreddit's location in the feature space.
+
+\subsection{Benchmark}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to provide a clearly defined benchmark result or threshold for comparing across performances obtained by your solution. The reasoning behind the benchmark (in the case where it is not an established result) should be discussed. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Has some result or value been provided that acts as a benchmark for measuring performance?
+\item Is it clear how this result or value was obtained (whether by data or by hypothesis)?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Student clearly defines a benchmark result or threshold for comparing performances of solutions obtained.
+\end{specs}
+\subsection*{}
+}{}
+
+\subsubsection{Feature Extraction Benchmark}
+The simplest model for the supervised problem (predicting from which subreddit a given comment was taken) takes word frequencies, then finds a linear discriminant or applies Naive Bayes to classify each document (each of these are used in the famous Mosteller and Wallace paper\cite{Mosteller1963}). A simple implementation of this method with multinomial Naive Bayes is shown in Listing \ref{listing:featurebenchmark}, where \texttt{X} contains comments and \texttt{y} is a label encoding of the subreddit names.
+
+\todo[inline]{Add jupyter snippet for benchmark models, showing results.}
+
+
+
+\subsubsection{Clustering Benchmark}
+As discussed in Section 6.2, comparing clustering algorithms is difficult, but we may nonetheless use the commonplace K-Means algorithm as a simple model to compare against. The most straightforward feature extraction method, LSA, is performed (i.e., we attempt to cluster rows\todo{columns?} of the truncated SVD of the tf/idf matrix).
+
+\todo[inline]{Add jupyter snippet for benchmark models, showing results.}
+
+\section{Methodology}
+
+\subsection{Data Preprocessing}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, all of your preprocessing steps will need to be clearly documented, if any were necessary. From the previous section, any of the abnormalities or characteristics that you identified about the dataset will be addressed and corrected here. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item If the algorithms chosen require preprocessing steps like feature selection or feature transformations, have they been properly documented?
+\item Based on the **Data Exploration** section, if there were abnormalities or characteristics that needed to be addressed, have they been properly corrected?
+\item If no preprocessing is needed, has it been made clear why?
+\end{itemize}
+
+\subsubsection*{Rubric}
+All preprocessing steps have been clearly documented. Abnormalities or characteristics about the data or input that needed to be addressed have been corrected. If no data preprocessing is necessary, it has been clearly justified.
+\end{specs}
+\subsection*{}
+}{}
+
+The data for this project is raw text. Before analysis may proceed, we must filter out Reddit markdown language\footnote{See \url{https://www.reddit.com/r/reddit.com/comments/6ewgt/reddit_markdown_primer_or_how_do_you_do_all_that/c03nik6/}}, non-English characters, and the trace left behind when one deletes a comment. We find that two subreddits, /r/newsokur and /r/Womad, are written almost entirely in Korean, so for simplicity we filter them out. Furthermore, 3.85\% of the comments were deleted or removed by moderators, so these are removed from the dataset\footnote{To preserve the hierarchical structure of Reddit, deleted comments are replaced with the text ``[deleted]''.}
+
+Then comes the non-trivial task of parsing the remaining text into term frequency vectors. There are many approaches to this process of \emph{vectorizing}, with few obvious advantages one way or another. Here, we use the scikit-learn vectorizers using the built-in English stopwords set (common words not to be included), ignoring words that appear in over half the documents or in only one. Instead of the built-in tokenizer (which actually separates words), we use the WordNet lemmatizer from the Natural Language Toolkit\cite{Bird-NLP} to avoid counting alternate conjugations as separate words as much as possible, then split on whitespace.
+
+The output of this preprocessing is a tf/idf matrix, where each column represents a word and each row a document. The gensim doc2vec implementation instead takes the data as a list of gensim labelled sentences, a gensim-specific datatype which is basically a list of tokenized words. A gensim utility is used to form this list.
+
+%Stratified K-fold cross-validation will be utilized during supervised hyperparameter optimization and evaluation to sample test sets without affecting class skew.\footnote{The skew is not inherent in the underlying data, but is an artifact of the random sampling in BigQuery. Stratified sampling nonetheless reduces spurious errors.}
+
+\subsection{Implementation}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, the process for which metrics, algorithms, and techniques that you implemented for the given data will need to be clearly documented. It should be abundantly clear how the implementation was carried out, and discussion should be made regarding any complications that occurred during this process. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Is it made clear how the algorithms and techniques were implemented with the given datasets or input data?
+\item Were there any complications with the original metrics or techniques that required changing prior to acquiring a solution?
+\item Was there any part of the coding process (e.g., writing complicated functions) that should be documented?
+\end{itemize}
+
+\subsubsection*{Rubric}
+The process for which metrics, algorithms, and techniques were implemented with the given datasets or input data has been thoroughly documented. Complications that occurred during the coding process are discussed.
+\end{specs}
+\subsection*{}
+}{}
+
+Thanks to the pre-built interfaces of scikit-learn, no significant challenge was posed in implementation of most of the methods. To match this interface, I built a wrapper class for the gensim doc2vec utilities, which includes the requisite \texttt{init}, \texttt{fit}, and \texttt{transform} methods, and holds the gensim doc2vec model as data. To avoid clunky parameter passing, I exposed only the number of iterations, the size of the feature vectors, and the model flavor (cBoW or skip-gram, see \cite{doc2vec}) as parameters. Having unified interfaces allowed me to use scikit-learn's parameter search utility \texttt{RandomizedSearchCV} for model refinement.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/flowchart}
+\caption{The flow of data through the implementation is shown.}
+\label{fig:flowchart}
+\end{figure}
+
+\subsection{Refinement}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to discuss the process of improvement you made upon the algorithms and techniques you used in your implementation. For example, adjusting parameters for certain models to acquire improved solutions would fall under the refinement category. Your initial and final solutions should be reported, as well as any significant intermediate results as necessary. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Has an initial solution been found and clearly reported?
+\item Is the process of improvement clearly documented, such as what techniques were used?
+\item Are intermediate and final solutions clearly reported as the process is improved?
+\end{itemize}	
+
+\subsubsection*{Rubric}
+The process of improving upon the algorithms and techniques used is clearly documented. Both the initial and final solutions are reported, along with intermediate solutions, if necessary.
+\end{specs}
+\subsection*{}
+}{}
+
+Rather than pursue an initial/intermediate/final improvement paradigm, the models are refined by a search of hyperparameter space, then a selection from among the various model options. This is an expensive process. The cost of the final production model must be multiplied by the number of cross-validation splits and the number of parameter combinations, which grows exponentially with the number of parameters. to combat this cost, the data is down-sampled by a factor of 100, only a few hyperparameters are changed from their default values, and only some of their possible values are evaluated.
+
+Nonetheless, relevant results are obtained. Three classification experiments are executed: one to explore LSA and K-Nearest Neighbors (Figure \ref{fig:LSA_KNN}), another to explore LDA (Figure \ref{fig:LDA}), and a third to explore doc2vec (Figure \ref{fig:doc2vec}).
+
+From the first experiment (Figure \ref{fig:LSA_KNN}, we see that the cost of KNN is not significantly dependent on the number of neighbors chosen, but that up to a value of 4 or 5, increasing this value leads to higher accuracy with LSA. Furthermore, we see a linear increase in the cost of LSA as the number of components is increased, but the gain in accuracy diminshes. We choose a middle ground of 60 for future experiments.
+
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam1}
+		\caption{Accuracy and time are plotted against the number of LSA components for various $K$ in KNN. Shaded regions represent one standard deviation in cross-validation.}
+		\label{fig:LSA_KNN}
+	\end{figure}
+	
+The second experiment (Figure \ref{fig:LDA}) explores teh learning decay and learning offset of the LDA model. The cost of running so many LDA trainings is prohibited, and significant improvements in accuracy were not obtained, beyond the general guidance to set both parameters as low as possible.
+	
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam2}
+		\caption{Accuracy and time are plotted against the decay rate ($\kappa$) for various learning offsets ($\tau_0$). Shaded regions represent one standard deviation in cross-validation.}
+		\label{fig:LDA}
+	\end{figure}
+	
+The third experiment (Figure \ref{fig:doc2vec}) explores the number of iterations in training the neural net, and the dimensionality of the document vector. This experiment is also constrained by the high cost of training the neural net, with even less clear-cut conclusions to be drawn. However, we note that too many iterations or too long of a vector may be overfitting the model; we set the parameters to 60 and 75, respectively.
+
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam3}
+		\caption{Accuracy and time are plotted against the number of training iterations for various numbers of components. Shaded regions represent  one standard deviation in cross-validation.}
+		\label{fig:doc2vec}
+	\end{figure}
+	
+Experiments such as these are much less useful in clustering problems, as by definition no objective metric is available to compare. However, we use the silhouette score to compare among the four feature extraction methods (LSA, pLSA, LDA, and doc2vec), the two clustering methods (KMeans and Birch), and for various average sizes of clusters.
+
+In the KMeans experiment (Figure \ref{fig:kmeans}), we see LSA, pLSA, and do2vec exhibiting similar performance with a peak cluster size around 20 (pLSA appears to perform somewhat better, and doc2vec seems less affected by cluster size). In general, LDA is outperformed by the other methods in silhouette score.
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam5}
+		\caption{Silhouette score and time are plotted against the average size of each cluster for various feature extraction methods, using online K-Means. Shaded regions represent one standard deviation in cross validation.}
+		\label{fig:kmeans}
+	\end{figure}
+	
+Similarly, the Birch experiment (Figure \ref{fig:birch}) shows the same results for LSA, pLSA, and doc2vec (though the peak around a cluster size of 20 is even less apparent for doc2vec). Now see LDA performance appear to skyrocket, but this is evidence of the poor suitability of the silhouette score for comparing performance: the clusters quickly conglomerate into very few, very large clusters, with many singletons. This leads to a high score, but is not very useful for exploring Reddit.
+	
+	\begin{figure}[htbp!]
+		\centering
+		\includegraphics[height=0.65\textheight,width=\textwidth,keepaspectratio]{figures/hyperparam4}
+		\caption{Silhouette score and time are plotted against the average size of each cluster for various feature extraction methods, using Birch. Shaded regions represent one standard deviation in cross validation.}
+		\label{fig:birch}
+	\end{figure}
+	
+In summary, using the tuned hypeparameters detailed above, LSA with 60 components achieves an accuracy just under 30\% in a 998-choice classification task. This is comparable to tuned pLSA and doc2vec models and much better than LDA, at a fraction of the cost of any of these. Qualitative exploration of KMeans and Birch are necessary to determine relative quality between these, as no meaningful difference is found using quantitative comparisons of silhouette score. We use Birch for final clustering, as its speed does not depend on the number of clusters.
+
+\section{Results}
+
+\subsection{Model Evaluation and Validation}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, the final model and any supporting qualities should be evaluated in detail. It should be clear how the final model was derived and why this model was chosen. In addition, some type of analysis should be used to validate the robustness of this model and its solution, such as manipulating the input data or environment to see how the model’s solution is affected (this is called sensitivity analysis). Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Is the final model reasonable and aligning with solution expectations? Are the final parameters of the model appropriate?
+\item Has the final model been tested with various inputs to evaluate whether the model generalizes well to unseen data?
+\item Is the model robust enough for the problem? Do small perturbations (changes) in training data or the input space greatly affect the results?
+\item Can results found from the model be trusted?
+\end{itemize}
+
+\subsubsection*{Rubric}
+The final model’s qualities --- such as parameters --- are evaluated in detail. Some type of analysis is used to validate the robustness of the model’s solution.
+\end{specs}
+\subsection*{}
+}{}
+
+We now turn to qualitative evaluation of the final clustering of Reddit communities, using LSA for feature extraction and Birch for clustering. Note that the refinements of Section 3.3 used five-fold cross-validation; that is, various subsets of the total data are used as training data with the held out portion used to measure accuracy. The shaded regions in the plots from that section show the standard deviation of results, and as such measure robustness to changes in the training data. This is not explored here, as qualitative exploration does not lend itself easily to such testing.
+
+We examine three clusters to examine the efficacy of analysis. First, a cluster of communities focused around discussion of cryptocurrencies (Figure \ref{fig:crypto}). The cluster contains all of the cryptocurrency-related subreddits from the data set, as best as we can tell. This is a huge success: a user interested in Bitcoin could easily find information on related topics.
+
+Next, two clusters highlight the success of clustering: not only are music-related clusters created, we find both communities which talk about listening to music (Figure \ref{fig:listener}) and communities which talk about making music (Figure \ref{fig:maker}). It is clear that some degree of granularity is possible.
+
+Finally, we can use a nearest neighbors index (here we use the \emph{Annoy} approximate nearest neighbors package\cite{annoy}) to directly find most similar subreddits. Starting from the popular exercise community /r/Fitness, we find communities focused on women's fitness and various flavors of weightlifting and gym-going (Table \ref{tab:recs}).
+ 
+ 	\begin{figure}[htbp!]
+		\centering
+\begin{tabular}{c}
+ `vertcoin', \\
+ `ethereum' \\
+ `CryptoCurrency' \\
+ `Bitcoin' \\
+ `ethtrader' \\
+ `Monero' \\ 
+ `waltonchain' \\
+ `BitcoinMarkets' \\
+ `Iota' \\
+ `BitcoinAll' \\
+ `Ripple' \\
+ `NEO' \\
+ `btc'
+ \end{tabular}
+		\includegraphics[width=0.5\textwidth, height=0.33\textheight,keepaspectratio]{figures/bitcoin_cluster}
+		\caption{The cryptocurrency cluster: subreddits, and most common words.}
+		\label{fig:crypto}
+	\end{figure}
+
+	\begin{figure}[htbp!]
+		\centering
+\begin{tabular}{c}
+'Kanye' \\
+ 'TaylorSwift' \\
+ 'FrankOcean' \\
+ 'indieheads' \\
+ 'hiphopheads' \\
+ 'bangtan' \\
+ 'Metalcore' \\
+ 'listentothis' \\
+ 'Eminem' \\
+ 'Metal' \\
+ 'popheads' \\
+ 'radiohead' \\
+ 'deathgrips' \\
+ 'kpop' \\
+ 'Music'
+ \end{tabular}
+		\includegraphics[width=0.5\textwidth, height=0.33\textheight, keepaspectratio]{figures/listeners_cluster}
+		\caption{Music listener cluster: subreddits, and most common words.}
+		\label{fig:listener}
+	\end{figure}
+
+	\begin{figure}[htbp!]
+		\centering
+\begin{tabular}{c}
+'synthesizers' \\
+ 'makinghiphop' \\
+ 'WeAreTheMusicMakers' \\
+ 'brandnew' \\
+ 'edmproduction' \\
+ 'Guitar' \\
+ 'vinyl' \\
+ 'guitarpedals' \\
+ 'headphones'
+ \end{tabular}
+		\includegraphics[width=0.5\textwidth, height=0.33\textheight, keepaspectratio]{figures/makers_cluster}
+		\caption{Music maker cluster: subreddits, and most common words.}
+		\label{fig:maker}
+	\end{figure}
+	
+\begin{figure}[htbp!]
+	\centering
+\begin{tabular}{c|c}
+Subreddit & Distance \\
+\midrule
+/r/xxfitness & 0.21\\
+/r/bodybuilding & 0.22\\
+/r/weightroom & 0.36\\
+/r/orangetheory & 0.39\\
+/r/powerlifting & 0.47
+\end{tabular}
+	\caption{}
+	\label{fig:recommendation}
+\end{figure}	
+
+\begin{table}[htbp!]
+\caption{Approximate cosine distance between /r/Fitness and its nearest neighbors}
+\centering
+\begin{tabular}{c|c}
+Subreddit & Distance \\
+\midrule
+/r/xxfitness & 0.21\\
+/r/bodybuilding & 0.22\\
+/r/weightroom & 0.36\\
+/r/orangetheory & 0.39\\
+/r/powerlifting & 0.47
+\end{tabular}
+\label{tab:recs}
+\end{table}
+
+\subsection{Justification}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, your model’s final solution and its results should be compared to the benchmark you established earlier in the project using some type of statistical analysis. You should also justify whether these results and the solution are significant enough to have solved the problem posed in the project. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Are the final results found stronger than the benchmark result reported earlier?
+\item Have you thoroughly analyzed and discussed the final solution?
+\item Is the final solution significant enough to have solved the problem?
+\end{itemize}
+
+\subsubsection*{Rubric}
+The final results are compared to the benchmark result or threshold with some type of statistical analysis. Justification is made as to whether the final model and solution is significant enough to have adequately solved the problem.
+\end{specs}
+\subsection*{}
+}{}
+
+\section{Conclusion}
+
+\subsection{Free-Form Visualization}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to provide some form of visualization that emphasizes an important quality about the project. It is much more free-form, but should reasonably support a significant result or characteristic about the problem that you want to discuss. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Have you visualized a relevant or important quality about the problem, dataset, input data, or results?
+\item Is the visualization thoroughly analyzed and discussed?
+\item If a plot is provided, are the axes, title, and datum clearly defined?
+\end{itemize}
+
+\subsubsection*{Rubric}
+A visualization has been provided that emphasizes an important quality about the project with thorough discussion. Visual cues are clearly defined.
+\end{specs}
+\subsection*{}
+}{}
+
+\subsection{Reflection}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will summarize the entire end-to-end problem solution and discuss one or two particular aspects of the project you found interesting or difficult. You are expected to reflect on the project as a whole to show that you have a firm understanding of the entire process employed in your work. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Have you thoroughly summarized the entire process you used for this project?
+\item Were there any interesting aspects of the project
+\item Were there any difficult aspects of the project?
+\item Does the final model and solution fit your expectations for the problem, and should it be used in a general setting to solve these types of problems?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Student adequately summarizes the end-to-end problem solution and discusses one or two particular aspects of the project they found interesting or difficult.
+\end{specs}
+\subsection*{}
+}{}
+
+\subsection{Improvement}
+
+\ifdraft{
+\hspace{1in}
+\vspace{-1.5em}
+\begin{specs}
+\subsubsection*{Specification}
+In this section, you will need to provide discussion as to how one aspect of the implementation you designed could be improved. As an example, consider ways your implementation can be made more general, and what would need to be modified. You do not need to make this improvement, but the potential solutions resulting from these changes are considered and compared/contrasted to your current solution. Questions to ask yourself when writing this section:
+\begin{itemize}
+\item Are there further improvements that could be made on the algorithms or techniques you used in this project?
+\item Were there algorithms or techniques you researched that you did not know how to implement, but would consider using if you knew how?
+\item If you used your final solution as the new benchmark, do you think an even better solution exists?
+\end{itemize}
+
+\subsubsection*{Rubric}
+Discussion is made as to how one aspect of the implementation could be improved. Potential solutions resulting from these improvements are considered and compared/contrasted to the current solution.
+\end{specs}
+\subsection*{}
+}{}
+
+
+
+\ifdraft{
+\begin{specs}
+\section*{Quality}
+\subsection*{Presentation}
+%Project report follows a well-organized structure and would be readily understood by its intended audience. Each section is written in a clear, concise and specific manner. Few grammatical and spelling mistakes are present. All resources used to complete the project are cited and referenced.
+
+\subsection*{Functionality}
+%Code is formatted neatly with comments that effectively explain complex implementations. Output produces similar results and solutions as to those discussed in the project.
+
+\section*{Before submitting, ask yourself. . .}
+\begin{itemize}
+\item Does the project report you’ve written follow a well-organized structure similar to that of the project template?
+\item Is each section (particularly \emph{Analysis} and \emph{Methodology}) written in a clear, concise and specific fashion? Are there any ambiguous terms or phrases that need clarification?
+\item Would the intended audience of your project be able to understand your analysis, methods, and results?
+\item Have you properly proof-read your project report to assure there are minimal grammatical and spelling mistakes?
+\item Are all the resources used for this project correctly cited and referenced?
+\item Is the code that implements your solution easily readable and properly commented?
+\item Does the code execute without error and produce results similar to those reported?
+\end{itemize}
+\end{specs}
+}{}
+
+\clearpage
+\section*{Listings}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{sql}
+SELECT
+  body,
+  subreddit,
+FROM (
+  SELECT
+    body,
+    subreddit,
+    score,
+    ROW_NUMBER() OVER(PARTITION BY subreddit ORDER BY score DESC) rows_score
+  FROM
+    [fh-bigquery:reddit_comments.2015_05]
+  WHERE
+    subreddit IN (
+    SELECT
+      subreddit
+    FROM (
+      SELECT
+        COUNT(*) num_coms,
+        subreddit
+      FROM
+        [fh-bigquery:reddit_comments.2015_05]
+      GROUP BY
+        subreddit
+      ORDER BY
+        num_coms DESC
+      LIMIT
+        100)))
+WHERE
+  rows_score <= 20000
+\end{minted}  
+\caption{BigQuery Example (44.1s elapsed, 9.94 GB processed)}
+\label{listing:bigquery}
+\end{listing}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{python}
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_validate
+
+vectorizer = CountVectorizer()
+clf = MultinomialNB()
+counts_multinomialNB = Pipeline([('counts', vectorizer), ('MultiNB', clf)])
+
+scores = cross_validate(counts_multinomialNB, X, y)
+\end{minted}
+\caption{Feature Extraction Benchmark model.}
+\label{listing:featurebenchmark}
+\end{listing}
+\begin{listing}[H]
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{python}
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import TruncatedSVD
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+X = data.body
+vectorizer = CountVectorizer()
+X_freqs = vectorizer.fit_transform(X)
+
+svd = TruncatedSVD(1000)
+X_svd = svd.fit_transform(X_freqs)
+
+clusterer = KMeans(n_clusters=10, random_state=0)
+clusterer.fit(X_svd)
+preds = clusterer.predict(X_svd)
+
+score = silhouette_score(X_svd, preds)
+\end{minted}
+\caption{Clustering Benchmark model.}
+\label{listing:clusterbenchmark}
+\end{listing}
+
+\printbibliography
+
+
+
+\end{document}
